@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "raspberrypi-epd"
+version = "0.1.0"
+description = ""
+authors = ["Jairo Sanchez <jairojsh@gmail.com>"]
+readme = "README.md"
+packages = [{include = "raspberrypi_epd"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+rpi-gpio = "^0.7.1"
+spidev = "^3.6"
+
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
