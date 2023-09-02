@@ -2,7 +2,7 @@ import logging
 import time
 import spidev
 import RPi.GPIO as GPIO
-import commands
+import raspberrypi_epd.commands as commands
 
 SPI_BUS = 0
 SPI_DEVICE = 1
