@@ -64,10 +64,11 @@ class SSD1680:
         self.__set_partial_ram_area(0, 0, self.WIDTH, self.HEIGHT)
         # After this command, data entries will be written into the BW RAM until another command is written.
         self.__write_command([commands.WRITE_RAM_BW])
-        for i in range(self.WIDTH * self.HEIGHT / 8):
+        count = int(self.WIDTH * self.HEIGHT / 8)
+        for i in range(count):
             self.__write_data([self.BLACK])
         self.__write_command([commands.WRITE_RAM_RED])
-        for i in range(self.WIDTH * self.HEIGHT / 8):
+        for i in range(count):
             self.__write_data([self.RED])
         self.__update_partial()
 
