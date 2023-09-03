@@ -12,7 +12,8 @@ class SSD1680:
     """
     Class to handle connection to an e-Paper Display with a SSD1680 controller
     """
-    def __init__(self, dc:int, cs, busy, reset):
+
+    def __init__(self, dc: int, cs: int, busy: int, reset: int):
         self.spi = spidev.SpiDev()
         self.configure_spi()
         self._spi_initialized = True
@@ -37,6 +38,7 @@ class SSD1680:
         self.spi.mode = 0
 
     def __write_command(self, cmd: bytes):
+        logging.debug(f'Sending Command: {cmd}')
         if self._spi_initialized:
             GPIO.output(self.DC, GPIO.LOW)
             GPIO.output(self.CS, GPIO.LOW)
@@ -104,11 +106,11 @@ class SSD1680:
     def __set_partial_ram_area(self, x, y, width, height):
         self.__write_command(commands.SET_RAM_X_STARTEND)
         # Specify the start/end positions of the window address in the X direction by 8 times address unit
-        start_address = bytes([int(x/8)])
-        logging.debug(f"Start X addr: {int(x/8)} => 0x{start_address.hex()}")
+        start_address = bytes([int(x / 8)])
+        logging.debug(f"Start X addr: {int(x / 8)} => 0x{start_address.hex()}")
         self.__write_data(start_address)
         end_address = bytes([int((x + width - 1) / 8)])
-        logging.debug(f'End X Address: {x+width-1} => 0x{end_address.hex()}')
+        logging.debug(f'End X Address: {x + width - 1} => 0x{end_address.hex()}')
         self.__write_data(end_address)
         # Specify the start / end positions of the window address in the Y direction by an address unit.
         self.__write_command(commands.SET_RAM_Y_STARTEND)
@@ -137,7 +139,7 @@ class SSD1680:
         time.sleep(0.005)
         GPIO.output(self.RESET, GPIO.HIGH)
         # SW Reset (command 0x12)
-        self.__write_byte([commands.SW_RESET])
+        self.__write_command([commands.SW_RESET])
         self.__wait_idle()
         # Wait 10ms
         time.sleep(0.01)

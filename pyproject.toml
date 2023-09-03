@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "raspberrypi_epd"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.9"
 rpi-gpio = "^0.7.1"
 spidev = "^3.6"
 
