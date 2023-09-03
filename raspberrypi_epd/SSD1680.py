@@ -25,7 +25,10 @@ class SSD1680:
         self.BLACK = 0x00
         self.WHITE = 0xFF
         self.RED = 0xFF
-        GPIO.setup([self.DC, self.CS, self.RESET], GPIO.OUT)
+        # GPIO.setup([self.DC, self.CS, self.RESET], GPIO.OUT)
+        GPIO.setup(self.DC, GPIO.OUT)
+        GPIO.setup(self.CS, GPIO.OUT)
+        GPIO.setup(self.RESET, GPIO.OUT)
         GPIO.output(self.RESET, GPIO.HIGH)
         self.BUSY = busy
         GPIO.setup(self.BUSY, GPIO.IN)
@@ -60,18 +63,18 @@ class SSD1680:
     def clear(self):
         self.__set_partial_ram_area(0, 0, self.WIDTH, self.HEIGHT)
         # After this command, data entries will be written into the BW RAM until another command is written.
-        self.__write_command(commands.WRITE_RAM_BW)
+        self.__write_command([commands.WRITE_RAM_BW])
         for i in range(self.WIDTH * self.HEIGHT / 8):
-            self.__write_data(self.BLACK)
-        self.__write_command(commands.WRITE_RAM_RED)
+            self.__write_data([self.BLACK])
+        self.__write_command([commands.WRITE_RAM_RED])
         for i in range(self.WIDTH * self.HEIGHT / 8):
-            self.__write_data(self.RED)
+            self.__write_data([self.RED])
         self.__update_partial()
 
     def __update_partial(self):
-        self.__write_command(commands.DISPLAY_UPDATE_CONTROL_2)
-        self.__write_data(0xF7)
-        self.__write_command(commands.MASTER_ACTIVATION)
+        self.__write_command([commands.DISPLAY_UPDATE_CONTROL_2])
+        self.__write_data([0xF7])
+        self.__write_command([commands.MASTER_ACTIVATION])
 
     def __wait_idle(self):
         while True:
@@ -83,28 +86,28 @@ class SSD1680:
     def __init_display(self):
         # Send init code
         #   Set gate driver output (0x01)
-        self.__write_command(commands.DRIVER_OUTPUT_CONTROL)
-        self.__write_data(0x27)
-        self.__write_data(0x01)
-        self.__write_data(0x00)
+        self.__write_command([commands.DRIVER_OUTPUT_CONTROL])
+        self.__write_data([0x27])
+        self.__write_data([0x01])
+        self.__write_data([0x00])
         #   Set display RAM size (0x11, 0x44, 0x45)
-        self.__write_command(commands.DATA_ENTRY_MODE)
-        self.__write_data(0x03)
+        self.__write_command([commands.DATA_ENTRY_MODE])
+        self.__write_data([0x03])
         #   Set panel border (0x3C)
-        self.__write_command(commands.BORDER_WAVEFORM_CONTROL)
-        self.__write_data(0x05)
+        self.__write_command([commands.BORDER_WAVEFORM_CONTROL])
+        self.__write_data([0x05])
         # Load Waveform LUT
         #   Sense temp (0x18)
-        self.__write_command(commands.TEMP_SENSOR_CONTROL)
-        self.__write_data(0x80)
+        self.__write_command([commands.TEMP_SENSOR_CONTROL])
+        self.__write_data([0x80])
         #   Load waveform LUT (0x22, 0x20)
         # Display update control
-        self.__write_command(commands.DISPLAY_UPDATE_CONTROL)
-        self.__write_data(0x00)
-        self.__write_data(0x80)
+        self.__write_command([commands.DISPLAY_UPDATE_CONTROL])
+        self.__write_data([0x00])
+        self.__write_data([0x80])
 
     def __set_partial_ram_area(self, x, y, width, height):
-        self.__write_command(commands.SET_RAM_X_STARTEND)
+        self.__write_command([commands.SET_RAM_X_STARTEND])
         # Specify the start/end positions of the window address in the X direction by 8 times address unit
         start_address = bytes([int(x / 8)])
         logging.debug(f"Start X addr: {int(x / 8)} => 0x{start_address.hex()}")
@@ -113,24 +116,24 @@ class SSD1680:
         logging.debug(f'End X Address: {x + width - 1} => 0x{end_address.hex()}')
         self.__write_data(end_address)
         # Specify the start / end positions of the window address in the Y direction by an address unit.
-        self.__write_command(commands.SET_RAM_Y_STARTEND)
+        self.__write_command([commands.SET_RAM_Y_STARTEND])
         self.__write_data(bytes([int(y % 256)]))
         self.__write_data(bytes([int(y / 256)]))
         self.__write_data(bytes([int((y + height - 1) % 256)]))
         self.__write_data(bytes([int((y + height - 1) / 256)]))
         # X RAM Offset
-        self.__write_command(commands.SET_RAM_X_ADDR_COUNTER)
+        self.__write_command([commands.SET_RAM_X_ADDR_COUNTER])
         self.__write_data(bytes([int(x / 8)]))
         # Y RAM Offset
-        self.__write_command(commands.SET_RAM_Y_ADDR_COUNTER)
+        self.__write_command([commands.SET_RAM_Y_ADDR_COUNTER])
         self.__write_data(bytes([int(y % 256)]))
         self.__write_data(bytes([int(y / 256)]))
 
     def power_on(self):
         # Power on
-        self.__write_command(commands.DISPLAY_UPDATE_CONTROL_2)
-        self.__write_data(0xf8)
-        self.__write_command(commands.MASTER_ACTIVATION)
+        self.__write_command([commands.DISPLAY_UPDATE_CONTROL_2])
+        self.__write_data([0xf8])
+        self.__write_command([commands.MASTER_ACTIVATION])
         self.__wait_idle()
 
     def reset(self):
