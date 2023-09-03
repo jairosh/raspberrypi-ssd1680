@@ -1,5 +1,6 @@
 import raspberrypi_epd
 import logging
+import RPi.GPIO as GPIO
 
 # Ejemplo de conexion
 # BUSY          GPIO4
@@ -10,6 +11,7 @@ import logging
 # SDATA         GPIO10 (SPI0 MOSI)
 # GND
 # VCC
+GPIO.setmode(GPIO.BCM)
 
 
 def main():
