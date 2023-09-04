@@ -21,6 +21,7 @@ def main():
     display = raspberrypi_epd.SSD1680(busy=4, reset=17, dc=27, cs=22)
     display.init()
     display.clear(raspberrypi_epd.Color.WHITE)
+    logging.info("Clear command executed")
     input('Press enter to exit')
     display.close()
 

@@ -45,7 +45,7 @@ class SSD1680:
         self.spi.mode = 0
 
     def __write_command(self, cmd: bytes):
-        logging.debug(f'Sending Command: {cmd}')
+        logging.debug(f'Sending Command: 0x{cmd.hex()}')
         if self._spi_initialized:
             GPIO.output(self.DC, GPIO.LOW)
             GPIO.output(self.CS, GPIO.LOW)
@@ -55,6 +55,7 @@ class SSD1680:
             time.sleep(0.005)
 
     def __write_data(self, data: bytes):
+        logging.debug(f'Sending Data: 0x{data.hex()}')
         if self._spi_initialized:
             GPIO.output(self.CS, GPIO.LOW)
             self.spi.xfer2(data)
@@ -114,25 +115,33 @@ class SSD1680:
     def __set_partial_ram_area(self, x, y, width, height):
         self.__write_command([commands.SET_RAM_X_STARTEND])
         # Specify the start/end positions of the window address in the X direction by 8 times address unit
-        start_address = bytes([int(x / 8)])
-        logging.debug(f"Start X addr: {int(x / 8)} => 0x{start_address.hex()}")
-        self.__write_data(start_address)
-        end_address = bytes([int((x + width - 1) / 8)])
-        logging.debug(f'End X Address: {x + width - 1} => 0x{end_address.hex()}')
-        self.__write_data(end_address)
+        start_x_address = bytes([int(x / 8)])
+        logging.debug(f"Start X addr: {int(x / 8)} => 0x{start_x_address.hex()}")
+        self.__write_data(start_x_address)
+        end_x_address = bytes([int((x + width - 1) / 8)])
+        logging.debug(f'End X Address: {x + width - 1} => 0x{end_x_address.hex()}')
+        self.__write_data(end_x_address)
         # Specify the start / end positions of the window address in the Y direction by an address unit.
         self.__write_command([commands.SET_RAM_Y_STARTEND])
-        self.__write_data(bytes([int(y % 256)]))
-        self.__write_data(bytes([int(y / 256)]))
-        self.__write_data(bytes([int((y + height - 1) % 256)]))
-        self.__write_data(bytes([int((y + height - 1) / 256)]))
+        start_y_mod = bytes([int(y % 256)])
+        logging.debug(f"Start Y addr (module): {int(y % 256)} => 0x{start_y_mod.hex()}")
+        self.__write_data(start_y_mod)
+        start_y_mult = bytes([int(y / 256)])
+        logging.debug(f"Start Y addr (multiplier): {int(y / 256)} => 0x{start_y_mult.hex()}")
+        self.__write_data(start_y_mult)
+        end_y_mod = bytes([int((y + height - 1) % 256)])
+        end_y_mult = bytes([int((y + height - 1) / 256)])
+        logging.debug(f"End Y addr (module): {int((y + height - 1) % 256)} => 0x{end_y_mod.hex()}")
+        logging.debug(f"End Y addr (multiplier): {int((y + height - 1) / 256)} => 0x{end_y_mult.hex()}")
+        self.__write_data(end_y_mod)
+        self.__write_data(end_y_mult)
         # X RAM Offset
         self.__write_command([commands.SET_RAM_X_ADDR_COUNTER])
-        self.__write_data(bytes([int(x / 8)]))
+        self.__write_data(start_x_address)
         # Y RAM Offset
         self.__write_command([commands.SET_RAM_Y_ADDR_COUNTER])
-        self.__write_data(bytes([int(y % 256)]))
-        self.__write_data(bytes([int(y / 256)]))
+        self.__write_data(start_y_mod)
+        self.__write_data(start_y_mult)
 
     def power_on(self):
         # Power on
