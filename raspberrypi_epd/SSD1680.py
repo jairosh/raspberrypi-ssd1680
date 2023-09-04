@@ -3,13 +3,13 @@ import time
 import spidev
 import RPi.GPIO as GPIO
 import raspberrypi_epd.commands as commands
-from enum import Enum
+
 
 SPI_BUS = 0
 SPI_DEVICE = 1
 
 
-class Color(Enum):
+class Color:
     BLACK = 0x00
     WHITE = 0xff
     RED = 0xff
@@ -19,6 +19,8 @@ class SSD1680:
     """
     Class to handle connection to an e-Paper Display with a SSD1680 controller
     """
+    WIDTH = 250
+    HEIGHT = 122
 
     def __init__(self, dc: int, cs: int, busy: int, reset: int):
         self.spi = spidev.SpiDev()
@@ -27,11 +29,6 @@ class SSD1680:
         self.DC = dc
         self.CS = cs
         self.RESET = reset
-        self.WIDTH = 250
-        self.HEIGHT = 122
-        self.BLACK = 0x00
-        self.WHITE = 0xFF
-        self.RED = 0xFF
         # GPIO.setup([self.DC, self.CS, self.RESET], GPIO.OUT)
         GPIO.setup(self.DC, GPIO.OUT)
         GPIO.setup(self.CS, GPIO.OUT)
