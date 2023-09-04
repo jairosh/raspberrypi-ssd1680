@@ -3,9 +3,16 @@ import time
 import spidev
 import RPi.GPIO as GPIO
 import raspberrypi_epd.commands as commands
+from enum import Enum
 
 SPI_BUS = 0
 SPI_DEVICE = 1
+
+
+class Color(Enum):
+    BLACK = 0x00
+    WHITE = 0xff
+    RED = 0xff
 
 
 class SSD1680:
@@ -60,16 +67,16 @@ class SSD1680:
     def draw_pixel(self, x: int, y: int):
         pass
 
-    def clear(self):
+    def clear(self, color: Color = Color.BLACK):
         self.__set_partial_ram_area(0, 0, self.WIDTH, self.HEIGHT)
         # After this command, data entries will be written into the BW RAM until another command is written.
         self.__write_command([commands.WRITE_RAM_BW])
         count = int(self.WIDTH * self.HEIGHT / 8)
         for i in range(count):
-            self.__write_data([self.BLACK])
+            self.__write_data([color])
         self.__write_command([commands.WRITE_RAM_RED])
         for i in range(count):
-            self.__write_data([self.RED])
+            self.__write_data([Color.WHITE])
         self.__update_partial()
 
     def __update_partial(self):
@@ -158,6 +165,7 @@ class SSD1680:
     def close(self):
         self.spi.close()
         self._spi_initialized = False
+        GPIO.cleanup()
 
     def power_off(self):
         """
