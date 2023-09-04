@@ -20,7 +20,8 @@ def main():
     logging.info("Initializing display")
     display = raspberrypi_epd.SSD1680(busy=4, reset=17, dc=27, cs=22)
     display.init()
-    display.clear()
+    display.clear(raspberrypi_epd.Color.WHITE)
+    input('Press enter to exit')
     display.close()
 
 
