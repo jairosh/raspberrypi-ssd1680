@@ -20,6 +20,16 @@ def main():
     logging.info("Initializing display")
     display = raspberrypi_epd.SSD1680(busy=4, reset=17, dc=27, cs=22)
     display.init()
+    # ----------------------
+    # display.set_rotation(1)
+    # display.set_font()
+    # display.set_text_color(raspberrypi_epd.Color.BLACK)
+    # tx, ty, tw, th = display.get_text_bounds("Hello world!")
+    # Center the bounding box
+    # x = ((display.width() - tw) / 2) - tx
+    # y = ((display.height() - th) / 2) - ty
+    # display.set_full_window()
+    # display.set_first_page()
     display.clear(raspberrypi_epd.Color.WHITE)
     logging.info("Clear command executed")
     input('Press enter to exit')

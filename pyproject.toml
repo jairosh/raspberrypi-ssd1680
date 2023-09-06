@@ -10,6 +10,7 @@ packages = [{include = "raspberrypi_epd"}]
 python = "^3.9"
 rpi-gpio = "^0.7.1"
 spidev = "^3.6"
+numpy = "^1.25.2"
 
 
 

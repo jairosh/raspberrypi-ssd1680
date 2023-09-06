@@ -19,8 +19,13 @@ class SSD1680:
     """
     Class to handle connection to an e-Paper Display with a SSD1680 controller
     """
-    WIDTH = 250
-    HEIGHT = 122
+    WIDTH = 128
+    WIDTH_VISIBLE = 122
+    HEIGHT = 250
+    POWER_ON_TIME = 100
+    POWER_OFF_TIME = 250
+    FULL_REFRESH_TIME = 4100
+    PARTIAL_REFRESH_TIME = 750
 
     def __init__(self, dc: int, cs: int, busy: int, reset: int):
         self.spi = spidev.SpiDev()
@@ -62,7 +67,9 @@ class SSD1680:
             GPIO.output(self.CS, GPIO.HIGH)
             time.sleep(0.005)
 
-    def draw_pixel(self, x: int, y: int):
+    def draw_pixel(self, x: int, y: int, color: Color):
+        if (x < 0) or (x >= self.WIDTH) or (y < 0) or (y >= self.HEIGHT):
+            raise ValueError("Coordinates out of screen bounds")
         pass
 
     def clear(self, color: bytes = Color.BLACK):
