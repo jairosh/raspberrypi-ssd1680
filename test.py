@@ -18,7 +18,7 @@ def main():
     logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
                         level=logging.DEBUG)
     logging.info("Initializing display")
-    display = raspberrypi_epd.SSD1680(busy=4, reset=17, dc=27, cs=22)
+    display = raspberrypi_epd.WeAct213(busy=4, reset=17, dc=27, cs=22)
     display.init()
     # ----------------------
     # display.set_rotation(1)
