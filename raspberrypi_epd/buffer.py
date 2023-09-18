@@ -58,6 +58,14 @@ class DisplayBuffer:
         for pixel in list_of_pixels:
             self.clear_pixel(pixel[0], pixel[1])
 
+    def clear_screen(self, value=0):
+        """Sets all the pixels in the screen to the same value
+
+        :param value: the value to fill the screen with
+        """
+        if value == 1 or value == 0:
+            self._buffer.fill(np.uint8(value))
+
     def get_pixel_value(self, x, y):
         """Reads the value of the given point (x, y)
 
@@ -85,7 +93,7 @@ class DisplayBuffer:
         """
         # Calculate x1 and x2 to get the slice from the buffer
         x1, x2, _ = self._get_slice(x, y)
-        print(f'Slicing buffer[{x1}:{x2}]')
+        logging.debug(f'Slicing buffer[{x1}:{x2}]')
         pixel_byte = DisplayBuffer.create_byte_from_array(self._buffer[x1:x2])
         return pixel_byte
 
@@ -98,47 +106,47 @@ class DisplayBuffer:
             x2 (int): Final x component
             y2 (int): Final y component
         """
-        dX = x2 - x1
-        dY = y2 - y1
+        dx = x2 - x1
+        dy = y2 - y1
 
-        if dY >= 0:
+        if dy >= 0:
             y_incr = 1
         else:
-            dY = -dY
+            dy = -dy
             y_incr = -1
 
-        if dX >= 0:
+        if dx >= 0:
             x_incr = 1
         else:
-            dX = -dX
+            dx = -dx
             x_incr = -1
 
-        if dX >= dY:
+        if dx >= dy:
             y_incr_s = 0
             x_incr_s = x_incr
         else:
             y_incr_s = y_incr
             x_incr_s = 0
             # Switch dX and dY
-            k = dX
-            dX = dY
-            dY = k
+            k = dx
+            dx = dy
+            dy = k
 
         x = x1
         y = y1
-        A = 2 * dY
-        B = A - dX
-        P = B - dX
+        a = 2 * dy
+        b = a - dx
+        p = b - dx
         while True:
             self.draw_pixel(x, y)
-            if B >= 0:
+            if b >= 0:
                 x = x + x_incr
                 y = y + y_incr
-                B = B + P
+                b = b + p
             else:
                 x = x + x_incr_s
                 y = y + y_incr_s
-                B = B + A
+                b = b + a
             if x == x2 and y == y2:
                 break
         self.draw_pixel(x, y)
@@ -315,7 +323,7 @@ class DisplayBuffer:
         """
         for y in range(self.HEIGHT):
             line_offset = y * self.WIDTH
-            print(self._buffer[line_offset: line_offset + self.WIDTH])
+            logging.debug(self._buffer[line_offset: line_offset + self.WIDTH])
 
     # █●
     def render(self, on_pixel='█', off_pixel=' '):
@@ -332,4 +340,3 @@ class DisplayBuffer:
             ascii_line = ''.join(ascii_list)
             lines.append(ascii_line)
         return '\n'.join(lines)
-

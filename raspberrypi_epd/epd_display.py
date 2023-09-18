@@ -5,12 +5,13 @@ import time
 import spidev
 import RPi.GPIO as GPIO
 from enum import Enum
+import buffer
 
 
 class Color(Enum):
-    WHITE = 1
+    WHITE = 0
+    BLACK = 1
     RED = 2
-    BLACK = 3
 
 
 BLACK = np.uint8(0x00)
@@ -48,7 +49,8 @@ class WeAct213:
         self._spi.open(bus=0, device=0)
         self._spi.max_speed_hz = 500000     # 500KHz
         self._spi.mode = 0                  # Clock polarity/phase
-        self._red_framebuffer = np.zeros((self.WIDTH, self.HEIGHT))
+        self._bw_buffer = buffer.DisplayBuffer(self.WIDTH, self.HEIGHT)
+        self._red_buffer = buffer.DisplayBuffer(self.WIDTH, self.HEIGHT)
 
     def init(self):
         self.reset()
@@ -174,19 +176,31 @@ class WeAct213:
         self._write_data_byte(np.uint8(0xF7))
         self._write_command(cmd.MASTER_ACTIVATION)
 
-    def clear(self, color: np.uint8):
+    def clear(self, color: Color):
+        if color == Color.RED:
+            self._bw_buffer.clear_screen(BLACK)
+            self._red_buffer.clear_screen(RED)
+        else:
+            self._bw_buffer.clear_screen(color.value)
+            self._red_buffer.clear_screen(0)
+        self.write_buffer()
+
+    def write_buffer(self):
         self._set_partial_area(0, 0, self.WIDTH, self.HEIGHT)
         # After this command, data entries will be written into the BW RAM until another command is written.
         self._write_command(cmd.WRITE_RAM_BW)
         count = int(self.WIDTH * self.HEIGHT / 8)
-        for i in range(count):
-            self._write_data_byte(color)
+        bw_buffer_bytes = self._bw_buffer.serialize()
+        for pixel in bw_buffer_bytes:
+            self._write_data_byte(pixel)
+
         self._write_command(cmd.WRITE_RAM_RED)
-        for i in range(count):
-            self._write_data_byte(np.invert(color))
+        red_buffer_bytes = self._red_buffer.serialize()
+        for pixel in red_buffer_bytes:
+            self._write_data_byte(pixel)
         self._update_partial()
 
-    def write_pixel(self, x:int, y:int, color: Color):
+    def write_pixel(self, x: int, y: int, color: Color):
         """
         Writes a single pixel to the display RAM
         :param x: X coordinate of the pixel
@@ -259,31 +273,3 @@ class WeAct213:
         else:
             h1 = h
         return x1, y1, w1, h1
-
-
-class EPDDisplay:
-    """
-    Represents a higher level abstraction of a display, operations described here act over a buffer
-    """
-    def __init__(self, controller: WeAct213):
-        self._buffer = np.array([0] * controller.WIDTH * controller.HEIGHT, dtype=np.uint8)
-        self.controller = controller
-
-    def init(self):
-        self.controller.init()
-        pass
-
-    def set_rotation(self, rotation: int):
-        pass
-
-    def draw_pixel(self, x: int, y: int, color: Color):
-        pass
-
-    def draw_bitmap(self, x: int, y: int, w: int, h: int, color: Color):
-        pass
-
-    def draw_text(self, text: str, font: Font, size: int, x: int, y: int):
-        pass
-
-    def close(self):
-        pass
