@@ -11,6 +11,8 @@ python = "^3.9"
 rpi-gpio = "^0.7.1"
 spidev = "^3.6"
 numpy = "^1.25.2"
+flake8 = "^6.1.0"
+pytest = "^7.4.2"
 
 
 
