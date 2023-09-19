@@ -24,6 +24,7 @@ def main():
     # display.set_rotation(1)
     # display.set_font()
     # display.clear(raspberrypi_epd.Color.WHITE)
+    display.fill(raspberrypi_epd.Color.WHITE)
     display.write_pixel(32, 32, raspberrypi_epd.Color.BLACK)
     input('Next point')
     display.write_pixel(61, 125, raspberrypi_epd.Color.BLACK)

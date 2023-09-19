@@ -1,16 +1,16 @@
 import numpy as np
-import commands as cmd
+import raspberrypi_epd.commands as cmd
 import logging
 import time
 import spidev
 import RPi.GPIO as GPIO
 from enum import Enum
-import buffer
+from raspberrypi_epd.buffer import DisplayBuffer
 
 
 class Color(Enum):
-    WHITE = 0
-    BLACK = 1
+    BLACK = 0
+    WHITE = 1
     RED = 2
 
 
@@ -33,6 +33,25 @@ class WeAct213:
     FULL_REFRESH_TIME = 4100
     PARTIAL_REFRESH_TIME = 750
     RESET_WAIT_TIME = 10
+    LUT_PARTIAL = np.array([0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00, 0x80, 0x80, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                            0x40, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00, 0x0A, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                            0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x00, 0x00, 0x00], dtype=np.uint8)
 
     def __init__(self, dc: int, cs: int, busy: int, reset: int):
         self._DC = dc
@@ -49,21 +68,42 @@ class WeAct213:
         self._spi.open(bus=0, device=0)
         self._spi.max_speed_hz = 500000     # 500KHz
         self._spi.mode = 0                  # Clock polarity/phase
-        self._bw_buffer = buffer.DisplayBuffer(self.WIDTH, self.HEIGHT)
-        self._red_buffer = buffer.DisplayBuffer(self.WIDTH, self.HEIGHT)
+        self._bw_buffer = DisplayBuffer(self.WIDTH, self.HEIGHT)
+        self._red_buffer = DisplayBuffer(self.WIDTH, self.HEIGHT)
+        self.powered = False
+        self._using_partial_mode = False
 
     def init(self):
         self.reset()
         self._startup()
-        self.power_on()
+        self._power_on()
+        self._using_partial_mode = False
 
-    def power_on(self):
+    def _power_on(self):
         # Power on
         self._write_command(cmd.DISPLAY_UPDATE_CONTROL_2)
         self._write_data_byte(np.uint8(0xf8))
         self._write_command(cmd.MASTER_ACTIVATION)
         self._wait_while_busy()
+        self.powered = True
         logging.debug('Power on complete')
+
+    def _power_off(self):
+        if self.powered:
+            self._write_command(cmd.DISPLAY_UPDATE_CONTROL_2)
+            self._write_data_byte(np.uint8(0x83))
+            self._write_command(cmd.MASTER_ACTIVATION)
+            self._wait_while_busy()
+            self.powered = False
+            self._using_partial_mode = False
+
+    def _init_partial(self):
+        self._startup()
+        # self._set_partial_area(0, 0, self.WIDTH, self.HEIGHT)
+        self._write_command(cmd.WRITE_LUT_REG)
+        self._write_data(self.LUT_PARTIAL)
+        self._power_on()
+        self.using_partial_mode = True
 
     def reset(self):
         logging.debug('Reseting the display')
@@ -80,10 +120,7 @@ class WeAct213:
         self._wait_while_busy()
         logging.debug('Display was reset')
 
-    def hibernate(self):
-        pass
-
-    def end(self):
+    def close(self):
         self._spi.close()
         GPIO.cleanup()
 
@@ -110,7 +147,6 @@ class WeAct213:
         #   Set panel border (0x3C)
         self._write_command(cmd.BORDER_WAVEFORM_CONTROL)
         self._write_data_byte(np.uint8(0x05))
-        # Load Waveform LUT
         #   Sense temp (0x18)
         self._write_command(cmd.TEMP_SENSOR_CONTROL)
         self._write_data_byte(np.uint8(0x80))
@@ -119,9 +155,6 @@ class WeAct213:
         self._write_command(cmd.DISPLAY_UPDATE_CONTROL)
         self._write_data_byte(np.uint8(0x00))
         self._write_data_byte(np.uint8(0x80))
-
-    def _init_partial(self):
-        pass
 
     def _set_partial_area(self, x, y, width, height):
         self._write_command(cmd.SET_RAM_X_STARTEND)
@@ -158,25 +191,32 @@ class WeAct213:
         logging.debug(f'Sending command: 0x{command.tobytes().hex()}')
         GPIO.output(self._DC, GPIO.LOW)
         GPIO.output(self._CS, GPIO.LOW)
-        self._spi.xfer2(command)
+        self._spi.xfer2(command.tobytes())
         GPIO.output(self._CS, GPIO.HIGH)
         GPIO.output(self._DC, GPIO.HIGH)
 
     def _write_data_byte(self, data: np.uint8):
         logging.debug(f'Sending data byte: 0x{data.tobytes().hex()}')
         GPIO.output(self._CS, GPIO.LOW)
-        self._spi.xfer2(data)
+        self._spi.xfer2(data.tobytes())
         GPIO.output(self._CS, GPIO.HIGH)
 
     def _write_data(self, data: np.array):
         self._spi.writebytes(data)
 
+    def _update_full(self):
+        self._write_command(cmd.DISPLAY_UPDATE_CONTROL_2)
+        self._write_data_byte(np.uint8(0xF4))
+        self._write_command(cmd.MASTER_ACTIVATION)
+        self._wait_while_busy()
+
     def _update_partial(self):
         self._write_command(cmd.DISPLAY_UPDATE_CONTROL_2)
-        self._write_data_byte(np.uint8(0xF7))
+        self._write_data_byte(np.uint8(0xCC)) #F7
         self._write_command(cmd.MASTER_ACTIVATION)
+        self._wait_while_busy()
 
-    def clear(self, color: Color):
+    def fill(self, color: Color):
         if color == Color.RED:
             self._bw_buffer.clear_screen(BLACK)
             self._red_buffer.clear_screen(RED)
@@ -196,8 +236,9 @@ class WeAct213:
 
         self._write_command(cmd.WRITE_RAM_RED)
         red_buffer_bytes = self._red_buffer.serialize()
-        for pixel in red_buffer_bytes:
-            self._write_data_byte(pixel)
+        self._write_data(red_buffer_bytes)
+        # for pixel in red_buffer_bytes:
+        #    self._write_data_byte(pixel)
         self._update_partial()
 
     def write_pixel(self, x: int, y: int, color: Color):
