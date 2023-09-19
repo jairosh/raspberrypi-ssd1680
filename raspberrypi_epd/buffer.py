@@ -93,7 +93,7 @@ class DisplayBuffer:
         """
         # Calculate x1 and x2 to get the slice from the buffer
         x1, x2, _ = self._get_slice(x, y)
-        logging.debug(f'Slicing buffer[{x1}:{x2}]')
+        # logging.debug(f'Slicing buffer[{x1}:{x2}]')
         pixel_byte = DisplayBuffer.create_byte_from_array(self._buffer[x1:x2])
         return pixel_byte
 
@@ -320,7 +320,7 @@ class DisplayBuffer:
         Returns:
             np.uint8: The byte representation
         """
-        logging.debug(f'Bit array: {bitarray}')
+        # logging.debug(f'Bit array: {bitarray}')
         if len(bitarray) != 8:
             raise ValueError('Incorrect array size. Array needs to be exactly 8')
         number = 0
