@@ -23,14 +23,10 @@ def main():
     # ----------------------
     # display.set_rotation(1)
     # display.set_font()
-    # display.set_text_color(raspberrypi_epd.Color.BLACK)
-    # tx, ty, tw, th = display.get_text_bounds("Hello world!")
-    # Center the bounding box
-    # x = ((display.width() - tw) / 2) - tx
-    # y = ((display.height() - th) / 2) - ty
-    # display.set_full_window()
-    # display.set_first_page()
-    display.clear(raspberrypi_epd.Color.WHITE)
+    # display.clear(raspberrypi_epd.Color.WHITE)
+    display.write_pixel(32, 32, raspberrypi_epd.Color.BLACK)
+    input('Next point')
+    display.write_pixel(61, 125, raspberrypi_epd.Color.BLACK)
     logging.info("Clear command executed")
     input('Press enter to exit')
     display.close()

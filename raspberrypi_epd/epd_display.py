@@ -210,21 +210,26 @@ class WeAct213:
         """
         # Calculate the byte where to write the bit representing the pixel
         # RAM size is 176x296 bits (22x37 bytes)
-        multiplier = int(y / x)
-        offset = multiplier * self.WIDTH
-        x_pixel_bit = x % 8
-        pixel_byte = offset + np.ceil(x/8) - 1
+        byte_addr = self._bw_buffer.pixel_address(x, y)
+        self._set_partial_area(x, y, 1, 1)
+        bit = x % 8
         if color is Color.BLACK or color is Color.WHITE:
             # Write the pixel in the BW RAM area and then clear the same pixel in RED RAM area
             self._write_command(cmd.WRITE_RAM_BW)
-            self._write_data_byte()
-
+            self._bw_buffer.draw_pixel(x, y)
+            display_byte = self._bw_buffer.get_pixel_byte(x, y)
+            self._write_data_byte(display_byte)
+            self._red_buffer.clear_pixel(x, y)
+            display_byte = self._red_buffer.get_pixel_byte(x, y)
             self._write_command(cmd.WRITE_RAM_RED)
-            pass
+            self._write_data_byte(display_byte)
         else:
             # Set the bit in the RED RAM area
-            pass
-        pass
+            self._red_buffer.draw_pixel(x, y)
+            display_byte = self._red_buffer.get_pixel_byte(x, y)
+            self._write_command(cmd.WRITE_RAM_RED)
+            self._write_data_byte(display_byte)
+        self._update_partial()
 
     def write_image(self, command: np.uint8, bitmap: np.ndarray, x: int, y: int, w: int, h: int, invert: bool):
         # A pixel is represented by a bit, so all coordinates and dimmensions need to be converted to bytes

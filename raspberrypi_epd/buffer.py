@@ -260,6 +260,16 @@ class DisplayBuffer:
         bit = x % 8
         return start, end, bit
 
+    def pixel_address(self, x: int, y: int):
+        """
+        Obtains the byte addr that contains the bit representing the pixel at (x, y)
+        :param x: X coordinate of the point of interest
+        :param y: Y coordinate of the point of interest
+        :return: The 0-based address (offset) of the byte
+        """
+        s, e, b = self._get_slice(x, y)
+        return s
+
     def _valid_coords(self, x, y):
         """Validates that the given coordinates are within the display (and buffer) bounds.
 
