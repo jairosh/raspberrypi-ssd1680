@@ -227,6 +227,8 @@ class WeAct213:
             logging.debug(f'Filling the screen with {color.value}')
             self._bw_buffer.clear_screen(color.value)
             self._red_buffer.clear_screen(0)
+        logging.debug(f'Sampling B&W RAM: {self._bw_buffer[0:10].bytes().hex()}')
+        logging.debug(f'Sampling RED RAM: {self._red_buffer[0:10].bytes().hex()}')
         self.write_buffer()
 
     def write_buffer(self):
