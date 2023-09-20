@@ -24,9 +24,13 @@ def main():
     if color_option in ['0', '1', '2']:
         color = raspberrypi_epd.Color.RED
         if color_option == '0':
+            logging.debug('Filling with BLACK')
             color = raspberrypi_epd.Color.BLACK
         elif color_option == '1':
+            logging.debug('Filling with WHITE')
             color = raspberrypi_epd.Color.WHITE
+        else:
+            logging.debug('Filling with RED')
         display.fill(color)
         display.refresh(False)
     else:
