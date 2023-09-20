@@ -65,6 +65,8 @@ class DisplayBuffer:
         """
         if value == 1 or value == 0:
             self._buffer.fill(np.uint8(value))
+        else:
+            logging.warning(f'Incorrect color value {value}')
 
     def get_pixel_value(self, x, y):
         """Reads the value of the given point (x, y)

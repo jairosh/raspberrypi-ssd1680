@@ -74,6 +74,7 @@ class WeAct213:
         self._using_partial_mode = False
 
     def init(self):
+        logging.debug('Initializing display')
         self.reset()
         self._startup()
         self._power_on()
@@ -97,13 +98,14 @@ class WeAct213:
             self.powered = False
             self._using_partial_mode = False
 
-    def _init_partial(self):
+    def init_partial(self):
+        logging.debug('Initializing partial update mode')
         self._startup()
         # self._set_partial_area(0, 0, self.WIDTH, self.HEIGHT)
         self._write_command(cmd.WRITE_LUT_REG)
         self._write_data(self.LUT_PARTIAL)
         self._power_on()
-        self.using_partial_mode = True
+        self._using_partial_mode = True
 
     def reset(self):
         logging.debug('Reseting the display')
@@ -212,7 +214,7 @@ class WeAct213:
 
     def _update_partial(self):
         self._write_command(cmd.DISPLAY_UPDATE_CONTROL_2)
-        self._write_data_byte(np.uint8(0xCC)) #F7
+        self._write_data_byte(np.uint8(0xCC))      # F7
         self._write_command(cmd.MASTER_ACTIVATION)
         self._wait_while_busy()
 
@@ -231,15 +233,11 @@ class WeAct213:
         self._write_command(cmd.WRITE_RAM_BW)
         count = int(self.WIDTH * self.HEIGHT / 8)
         bw_buffer_bytes = self._bw_buffer.serialize()
-        for pixel in bw_buffer_bytes:
-            self._write_data_byte(pixel)
-
+        self._write_data(bw_buffer_bytes)
         self._write_command(cmd.WRITE_RAM_RED)
         red_buffer_bytes = self._red_buffer.serialize()
         logging.debug(red_buffer_bytes)
         self._write_data(red_buffer_bytes)
-        # for pixel in red_buffer_bytes:
-        #    self._write_data_byte(pixel)
         self._update_partial()
 
     def write_pixel(self, x: int, y: int, color: Color):
