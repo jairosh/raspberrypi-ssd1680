@@ -297,15 +297,17 @@ class DisplayBuffer:
         """Converts the internal buffer to a list of bytes
 
         Returns:
-            list(np.uint8): The internal buffer as a list of bytes
+            np.array(np.uint8): The internal buffer as an array of bytes
         """
         bytelist = []
         total_pixels = self.WIDTH * self.HEIGHT
+        logging.debug(f'The size of serialized buffer is {total_pixels}')
         for byte in range(int(total_pixels / 8)):
             start = byte * 8
             byte_nbr = self.create_byte_from_array(self._buffer[start: start + 8])
             bytelist.append(np.uint8(byte_nbr))
-        return bytelist
+        logging.debug(f'Final size of list: {len(bytelist)}')
+        return np.array(bytelist, dtype=np.uint8)
 
     @staticmethod
     def create_byte_from_array(bitarray: np.array):

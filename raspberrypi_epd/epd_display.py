@@ -196,7 +196,7 @@ class WeAct213:
         GPIO.output(self._DC, GPIO.HIGH)
 
     def _write_data_byte(self, data: np.uint8):
-        logging.debug(f'Sending data byte: 0x{data.tobytes().hex()}')
+        # logging.debug(f'Sending data byte: 0x{data.tobytes().hex()}')
         GPIO.output(self._CS, GPIO.LOW)
         self._spi.xfer2(data.tobytes())
         GPIO.output(self._CS, GPIO.HIGH)
@@ -236,6 +236,7 @@ class WeAct213:
 
         self._write_command(cmd.WRITE_RAM_RED)
         red_buffer_bytes = self._red_buffer.serialize()
+        logging.debug(red_buffer_bytes)
         self._write_data(red_buffer_bytes)
         # for pixel in red_buffer_bytes:
         #    self._write_data_byte(pixel)
