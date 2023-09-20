@@ -15,6 +15,9 @@ GPIO.setmode(GPIO.BCM)
 
 
 def main():
+    logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
+                        level=logging.DEBUG)
+    logging.info("Initializing display")
     display = raspberrypi_epd.WeAct213(busy=4, reset=17, dc=27, cs=22)
     display.init()
     color_option = input('Pick color to clear the screen:\n0 = black\n1 = white\n2 = red\n')
