@@ -17,7 +17,7 @@ GPIO.setmode(GPIO.BCM)
 def main():
     display = raspberrypi_epd.WeAct213(busy=4, reset=17, dc=27, cs=22)
     display.init()
-    color_option = input('Pick color to clear the screen:\n0 = black\n1 = white\n2 = red')
+    color_option = input('Pick color to clear the screen:\n0 = black\n1 = white\n2 = red\n')
     if color_option in ['0', '1', '2']:
         display.fill(raspberrypi_epd.Color.BLACK)
         display.refresh(False)

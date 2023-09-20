@@ -235,11 +235,15 @@ class WeAct213:
         self._write_command(cmd.WRITE_RAM_BW)
         count = int(self.WIDTH * self.HEIGHT / 8)
         bw_buffer_bytes = self._bw_buffer.serialize()
-        self._write_data(bw_buffer_bytes)
+        # self._write_data(bw_buffer_bytes)
+        for data in bw_buffer_bytes:
+            self._write_data_byte(data)
         self._write_command(cmd.WRITE_RAM_RED)
         red_buffer_bytes = self._red_buffer.serialize()
         logging.debug(red_buffer_bytes)
-        self._write_data(red_buffer_bytes)
+        # self._write_data(red_buffer_bytes)
+        for data in red_buffer_bytes:
+            self._write_data_byte(data)
         self._update_partial()
 
     def refresh(self, partial_mode):
