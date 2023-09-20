@@ -106,7 +106,7 @@ class DisplayBuffer:
             y (int): Y coordinate of the pixel to read
 
         Returns:
-            _type_: _description_
+            np.uint8: A single byte representation containing the pixel
         """
         # Calculate x1 and x2 to get the slice from the buffer
         x1, x2, _ = self._get_slice(x, y)
