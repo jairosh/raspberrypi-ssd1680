@@ -221,8 +221,8 @@ class WeAct213:
     def fill(self, color: Color):
         if color == Color.RED:
             logging.debug('Filling the screen with RED color')
-            self._bw_buffer.clear_screen(BLACK)
-            self._red_buffer.clear_screen(RED)
+            self._bw_buffer.clear_screen(0)
+            self._red_buffer.clear_screen(1)
         else:
             logging.debug(f'Filling the screen with {color.value}')
             self._bw_buffer.clear_screen(color.value)
