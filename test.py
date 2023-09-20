@@ -25,6 +25,7 @@ def main():
     # display.set_font()
     # display.clear(raspberrypi_epd.Color.WHITE)
     display.fill(raspberrypi_epd.Color.RED)
+    display.refresh(False)
     input('Display was cleared, press ENTER to continue')
     display.write_pixel(32, 32, raspberrypi_epd.Color.BLACK)
     input('Next point')

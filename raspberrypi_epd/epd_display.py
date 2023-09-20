@@ -240,6 +240,21 @@ class WeAct213:
         self._write_data(red_buffer_bytes)
         self._update_partial()
 
+    def refresh(self, partial_mode):
+        if partial_mode:
+            self.refresh_area(0, 0, self.WIDTH, self.HEIGHT)
+        else:
+            if self._using_partial_mode:
+                self.init()
+            self._update_full()
+
+    def refresh_area(self, x, y, width, height):
+        x1, y1, w1, h1 = self._get_visible_bbox(x, y, width, height)
+        if not self._using_partial_mode:
+            self.init()
+        self._set_partial_area(x1, y1, w1, h1)
+        self._update_partial()
+
     def write_pixel(self, x: int, y: int, color: Color):
         """
         Writes a single pixel to the display RAM
