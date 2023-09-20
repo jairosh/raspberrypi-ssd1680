@@ -22,7 +22,12 @@ def main():
     display.init()
     color_option = input('Pick color to clear the screen:\n0 = black\n1 = white\n2 = red\n')
     if color_option in ['0', '1', '2']:
-        display.fill(raspberrypi_epd.Color.BLACK)
+        color = raspberrypi_epd.Color.RED
+        if color_option == '0':
+            color = raspberrypi_epd.Color.BLACK
+        elif color_option == '1':
+            color = raspberrypi_epd.Color.WHITE
+        display.fill(color)
         display.refresh(False)
     else:
         logging.info('Invalid color option')
