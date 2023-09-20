@@ -7,7 +7,14 @@ class DisplayBuffer:
     Class to act as an abstraction of a display
     """
 
-    def __init__(self, width, height):
+    def __init__(self, width, height, bg=1, fg=0):
+        """
+        Initializes the display buffer. each pixel is modeled in one bit
+        :param width: Width of the display this buffer models
+        :param height: Height of the display this buffer models
+        :param bg: Background value (default is 1=white)
+        :param fg: Foreground value (default is 0=black)
+        """
         # Pad the buffer to have whole bytes
         self.WIDTH = width if width % 8 == 0 else (int(width / 8) + 1) * 8
         self.HEIGHT = height
@@ -15,6 +22,8 @@ class DisplayBuffer:
         self._BYTE_HEIGHT = self.HEIGHT / 8
         self._buffer = np.zeros((self.WIDTH * self.HEIGHT), dtype=np.uint8)
         self._out_of_bounds_error = False
+        self._foreground = fg
+        self._background = bg
 
     def draw_pixel(self, x, y):
         """Draws a single pixel by setting its representing bit in the buffer
@@ -26,7 +35,13 @@ class DisplayBuffer:
         if not self._valid_coords(x, y):
             return
         s, e, b = self._get_slice(x, y)
-        self._buffer[s + b] = 1
+        self._buffer[s + b] = self._foreground
+
+    def set_background(self, value):
+        self._background = value
+
+    def set_foreground(self, value):
+        self._foreground = value
 
     def draw_group_pixels(self, list_of_pixels):
         """Sets the pixels in the given list
@@ -47,7 +62,7 @@ class DisplayBuffer:
         if not self._valid_coords(x, y):
             return
         s, e, b = self._get_slice(x, y)
-        self._buffer[s + b] = 0
+        self._buffer[s + b] = self._background
 
     def clear_group_pixels(self, list_of_pixels: list):
         """Clears the pixels/bits in the buffer
