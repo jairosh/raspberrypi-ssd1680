@@ -275,10 +275,11 @@ class WeAct213:
         # RAM size is 176x296 bits (22x37 bytes)
         self._set_partial_area(x, y, 1, 1)
         if color is Color.BLACK or color is Color.WHITE:
+            color_value = np.uint8(0) if color is Color.BLACK else np.uint8(1)
             logging.debug(f'Drawing a black or white pixel in ({x}, {y})')
             # Write the pixel in the BW RAM area and then clear the same pixel in RED RAM area
             self._write_command(cmd.WRITE_RAM_BW)
-            self._bw_buffer.draw_pixel(x, y)
+            self._bw_buffer.draw_pixel(x, y, color_value)
             display_byte = self._bw_buffer.get_pixel_byte(x, y)
             self._write_data_byte(display_byte)
             self._red_buffer.clear_pixel(x, y)
@@ -288,7 +289,7 @@ class WeAct213:
         else:
             logging.debug(f'Drawing a red pixel in ({x}, {y})')
             # Set the bit in the RED RAM area
-            self._red_buffer.draw_pixel(x, y)
+            self._red_buffer.set_pixel(x, y)
             display_byte = self._red_buffer.get_pixel_byte(x, y)
             self._write_command(cmd.WRITE_RAM_RED)
             self._write_data_byte(display_byte)

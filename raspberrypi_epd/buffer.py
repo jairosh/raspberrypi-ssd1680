@@ -9,7 +9,8 @@ class DisplayBuffer:
 
     def __init__(self, width, height, bg=1, fg=0):
         """
-        Initializes the display buffer. each pixel is modeled in one bit
+        Initializes the display buffer. Each pixel is modeled in one bit, the default color is "white" background and
+        "black" foreground
         :param width: Width of the display this buffer models
         :param height: Height of the display this buffer models
         :param bg: Background value (default is 1=white)
@@ -25,8 +26,22 @@ class DisplayBuffer:
         self._foreground = fg
         self._background = bg
 
-    def draw_pixel(self, x, y):
-        """Draws a single pixel by setting its representing bit in the buffer
+    def draw_pixel(self, x: int, y: int, value: np.uint8):
+        """
+        Draw a single pixel in (x, y) with the indicated value
+        :param x: X coordinate of the pixel to draw
+        :param y: Y Coordinate of the pixel to draw
+        :param value: Value to set the pixel to (1 or 0)
+        :return: none
+        """
+        if not self._valid_coords(x, y):
+            return
+        start, end, bit = self._get_slice(x, y)
+        self._buffer[start + bit] = value
+        pass
+
+    def set_pixel(self, x, y):
+        """Draws a single pixel by setting its representing bit in the buffer to the foreground value
 
         Args:
             x (int): X coordinate of the pixel
@@ -43,7 +58,7 @@ class DisplayBuffer:
     def set_foreground(self, value):
         self._foreground = value
 
-    def draw_group_pixels(self, list_of_pixels):
+    def set_group_pixels(self, list_of_pixels):
         """Sets the pixels in the given list
 
         Args:

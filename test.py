@@ -20,10 +20,6 @@ def main():
     logging.info("Initializing display")
     display = raspberrypi_epd.WeAct213(busy=4, reset=17, dc=27, cs=22)
     display.init()
-    # ----------------------
-    # display.set_rotation(1)
-    # display.set_font()
-    # display.clear(raspberrypi_epd.Color.WHITE)
     display.fill(raspberrypi_epd.Color.RED)
     display.refresh(False)
     input('Display was cleared, press ENTER to continue')
