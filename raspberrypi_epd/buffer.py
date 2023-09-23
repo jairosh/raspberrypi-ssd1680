@@ -364,9 +364,11 @@ class DisplayBuffer:
         total_bytes = np.uint8((slice_end - slice_start) / 8)
         logging.debug(f'Expecting {total_bytes} bytes')
         byte_list = []
-        for byte in range(slice_start, slice_end):
+        byte_offset = slice_start / 8
+        for byte in range(byte_offset, byte_offset + total_bytes):
             start = byte * 8
-            byte_value = self.create_byte_from_array(self._buffer[start:start+8])
+            logging.debug(f'Slice: [{start}:{start+8}]')
+            byte_value = self.create_byte_from_array(self._buffer[start:start + 8])
             byte_list.append(byte_value)
         return np.array(byte_list, dtype=np.uint8)
 
