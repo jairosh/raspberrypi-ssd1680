@@ -361,10 +361,10 @@ class DisplayBuffer:
         slice_start, _, _ = self._get_slice(x, y)
         _, slice_end, _ = self._get_slice(x + width, y + height)
         logging.debug(f'Serializing the area ({x}, {y}, {width}, {height}) at [{slice_start}:{slice_end}]')
-        total_bytes = np.uint8((slice_end - slice_start) / 8)
+        total_bytes = int((slice_end - slice_start) / 8)
         logging.debug(f'Expecting {total_bytes} bytes')
         byte_list = []
-        byte_offset = slice_start / 8
+        byte_offset = int(slice_start / 8)
         for byte in range(byte_offset, byte_offset + total_bytes):
             start = byte * 8
             logging.debug(f'Slice: [{start}:{start+8}]')
