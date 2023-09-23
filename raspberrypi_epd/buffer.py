@@ -385,7 +385,7 @@ class DisplayBuffer:
         """
         # logging.debug(f'Bit array: {bitarray}')
         if len(bitarray) != 8:
-            raise ValueError('Incorrect array size. Array needs to be exactly 8')
+            raise ValueError(f'Incorrect array size. Array needs to be exactly 8 but got {len(bitarray)}')
         number = 0
         for b in bitarray:
             number = (2 * number) + b
