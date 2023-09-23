@@ -38,7 +38,17 @@ class DisplayBuffer:
             return
         start, end, bit = self._get_slice(x, y)
         self._buffer[start + bit] = value
-        pass
+
+    def draw_pixels(self, pixels: list, value: np.uint8):
+        """
+        Draws the pixels specified in a list of 2-tuples with the value specified
+
+        Args:
+            pixels (list): List of 2-tuples that indicate each pixel, the tuples are in the form (x, y)
+            value (np.uint8): The value to set the pixels to
+        """
+        for pixel in pixels:
+            self.draw_pixel(pixel[0], pixel[1], value)
 
     def set_pixel(self, x, y):
         """Draws a single pixel by setting its representing bit in the buffer to the foreground value
@@ -65,7 +75,7 @@ class DisplayBuffer:
             list_of_pixels (list): List of 2-tuples with the points (x, y)
         """
         for pixel in list_of_pixels:
-            self.draw_pixel(pixel[0], pixel[1])
+            self.set_pixel(pixel[0], pixel[1])
 
     def clear_pixel(self, x, y):
         """Erases a pixel on the display by clearing its representing bit in the buffer
@@ -129,7 +139,7 @@ class DisplayBuffer:
         pixel_byte = DisplayBuffer.create_byte_from_array(self._buffer[x1:x2])
         return pixel_byte
 
-    def draw_line(self, x1, y1, x2, y2):
+    def draw_line(self, x1, y1, x2, y2, value: np.uint8):
         """Implements the Bresenham algorithm to draw a line from (x1, y1) to (x2, y2)
 
         Args:
@@ -137,6 +147,7 @@ class DisplayBuffer:
             y1 (int): Starting y component
             x2 (int): Final x component
             y2 (int): Final y component
+            value (np.uint8): Value (color) to set the bit to
         """
         dx = x2 - x1
         dy = y2 - y1
@@ -170,7 +181,7 @@ class DisplayBuffer:
         b = a - dx
         p = b - dx
         while True:
-            self.draw_pixel(x, y)
+            self.draw_pixel(x, y, value)
             if b >= 0:
                 x = x + x_incr
                 y = y + y_incr
@@ -181,55 +192,57 @@ class DisplayBuffer:
                 b = b + a
             if x == x2 and y == y2:
                 break
-        self.draw_pixel(x, y)
+        self.draw_pixel(x, y, value)
 
-    def draw_circle_2(self, xc, yc, r):
+    def draw_circle_2(self, xc, yc, r, value: np.uint8):
         """Draws a circle centered in xc, yc of radius r using the Jesko method
 
         Args:
             xc (int): Center's X coordinate
             yc (int): Center's Y coordinate
             r (int): Radius
+            value (np.uint8): Value to set the pixel's bit to
         """
         t1 = int(r / 16)
         x = r
         y = 0
         while x >= y:
-            self.draw_pixel(x + xc, y + yc)
-            self.draw_pixel(-x + xc, y + yc)
-            self.draw_pixel(x + xc, -y + yc)
-            self.draw_pixel(-x + xc, -y + yc)
+            self.draw_pixel(x + xc, y + yc, value)
+            self.draw_pixel(-x + xc, y + yc, value)
+            self.draw_pixel(x + xc, -y + yc, value)
+            self.draw_pixel(-x + xc, -y + yc, value)
             y = y + 1
             t1 = t1 + y
             t2 = t1 - x
             if t2 >= 0:
                 t1 = t2
                 x = x - 1
-        self.draw_group_pixels([(xc + r, yc),
-                                (xc - r, yc),
-                                (xc, yc + r),
-                                (xc, yc - r)])
+        self.draw_pixels([(xc + r, yc),
+                          (xc - r, yc),
+                          (xc, yc + r),
+                          (xc, yc - r)], self._foreground)
 
-    def draw_circle(self, xc, yc, r):
+    def draw_circle(self, xc: int, yc: int, r: int, value: np.uint8):
         """Draws a circle with the Midpoint Algorithm
 
         Args:
             xc (int): X coordinate of the circle's center
             yc (int): Y coordinate of the circle's center
             r (int): Circle's radius
+            value (np.uint8): Value to set the bit in the buffer
         """
         if r == 0:
-            self.draw_pixel(xc, yc)
+            self.draw_pixel(xc, yc, value)
             return
 
         xk, yk = (r, 0)
         pk = 1 - r
-        self.draw_group_pixels([(xk + xc, yk + yc),
+        self.draw_pixels([(xk + xc, yk + yc),
                                 (-xk + xc, yk + yc),
                                 (xk + xc, -yk + yc),
-                                (-xk + xc, -yk + yc)])
-        self.draw_group_pixels([(xc, yc + r),
-                                (xc, yc - r)])
+                                (-xk + xc, -yk + yc)], value)
+        self.draw_pixels([(xc, yc + r),
+                          (xc, yc - r)], value)
         while xk > yk:
             yk = yk + 1
             if pk <= 0:
@@ -242,15 +255,15 @@ class DisplayBuffer:
                 break
 
             # self.draw_pixel(xk + xc, yk + yc)
-            self.draw_group_pixels([(xk + xc, yk + yc),
-                                    (-xk + xc, yk + yc),
-                                    (xk + xc, -yk + yc),
-                                    (-xk + xc, -yk + yc)])
+            self.draw_pixels([(xk + xc, yk + yc),
+                              (-xk + xc, yk + yc),
+                              (xk + xc, -yk + yc),
+                              (-xk + xc, -yk + yc)], value)
             if xk != yk:
-                self.draw_group_pixels([(yk + xc, xk + yc),
-                                        (-yk + xc, xk + yc),
-                                        (yk + xc, -xk + yc),
-                                        (-yk + xc, -xk + yc)])
+                self.draw_pixels([(yk + xc, xk + yc),
+                                  (-yk + xc, xk + yc),
+                                  (yk + xc, -xk + yc),
+                                  (-yk + xc, -xk + yc)], value)
 
     def draw_bitmap(self, bitmap: np.array, x: int, y: int, w: int, h: int):
         """Draws a bitmap on the buffer. The bitmap starts at the upper left corner (x, y)
@@ -340,6 +353,22 @@ class DisplayBuffer:
             bytelist.append(np.uint8(byte_nbr))
         logging.debug(f'Final size of list: {len(bytelist)}')
         return np.array(bytelist, dtype=np.uint8)
+
+    def serialize_area(self, x, y, width, height):
+        if not self._valid_coords(x, y) or not self._valid_coords(x+width, y+height):
+            logging.warning(f'The specified coordinates are invalid')
+            return
+        slice_start, _, _ = self._get_slice(x, y)
+        _, slice_end, _ = self._get_slice(x + width, y + height)
+        logging.debug(f'Serializing the area ({x}, {y}, {width}, {height}) at [{slice_start}:{slice_end}]')
+        total_bytes = np.uint8((slice_end - slice_start) / 8)
+        logging.debug(f'Expecting {total_bytes} bytes')
+        byte_list = []
+        for byte in range(slice_start, slice_end):
+            start = byte * 8
+            byte_value = self.create_byte_from_array(self._buffer[start:start+8])
+            byte_list.append(byte_value)
+        return np.array(byte_list, dtype=np.uint8)
 
     @staticmethod
     def create_byte_from_array(bitarray: np.array):

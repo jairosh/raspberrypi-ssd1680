@@ -295,6 +295,46 @@ class WeAct213:
             self._write_data_byte(display_byte)
         self._update_partial()
 
+    def write_line(self, x1: int, y1: int, x2: int, y2:int, color: Color):
+        """
+        Draws and writes a line that goes from the point (x1, y1) to (x2, y2) in the specified color
+        :param x1: Starting x coordinate
+        :param y1: Starting y coordinate
+        :param x2: Ending x coordinate
+        :param y2: Ending y coordinate
+        :param color: Color of the line
+        :return: none
+        """
+        if x1 == x2 and y1 == y2:
+            self.write_pixel(x1, y1, color)
+            return
+        logging.info(f'Drawing and writing a line from ({x1}, {y1}) to ({x2}, {y2})')
+        x_min = x1 if x1 < x2 else x2
+        y_min = y1 if y1 < y2 else y2
+        x_max = x1 if x1 > x2 else x2
+        y_max = y1 if y1 > y2 else y2
+        logging.info(f'The bounding box of the line is ({x_min}, {y_min}, {x_max}, {y_max})')
+        x, y, w, h = self._get_visible_bbox(x_min, y_min, x_max - x_min, y_max - y_min)
+        self._set_partial_area(x, y, w, h)
+        if color is Color.BLACK or color is Color.WHITE:
+            color_value = np.uint8(0) if color is Color.BLACK else np.uint8(1)
+            self._write_command(cmd.WRITE_RAM_BW)
+            self._bw_buffer.draw_line(x1, y1, x2, y2, color_value)
+            data = self._bw_buffer.serialize_area(x, y, w, h)
+            self._write_data(data)
+            self._red_buffer.draw_line(x1, y1, x2, y2, 0)
+            self._write_command(cmd.WRITE_RAM_RED)
+            data = self._red_buffer.serialize_area(x, y, w, h)
+            self._write_data(data)
+        else:
+            logging.debug(f'Drawing a red line in ({x1}, {y1})--({x2}, {y2})')
+            # Set the bit in the RED RAM area
+            self._red_buffer.draw_line(x1, y1, x2, y2, np.uint8(1))
+            data = self._red_buffer.serialize_area(x, y, w, h)
+            self._write_command(cmd.WRITE_RAM_RED)
+            self._write_data(data)
+        self._update_partial()
+
     def write_image(self, command: np.uint8, bitmap: np.ndarray, x: int, y: int, w: int, h: int, invert: bool):
         # A pixel is represented by a bit, so all coordinates and dimmensions need to be converted to bytes
         d = np.array(x, y, w, h)
