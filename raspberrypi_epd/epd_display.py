@@ -204,7 +204,7 @@ class WeAct213:
         GPIO.output(self._CS, GPIO.HIGH)
 
     def _write_data(self, data: np.array):
-        self._spi.writebytes2(data)
+        self._spi.xfer2(data)
 
     def _update_full(self):
         self._write_command(cmd.DISPLAY_UPDATE_CONTROL_2)
@@ -295,7 +295,7 @@ class WeAct213:
             self._write_data_byte(display_byte)
         self._update_partial()
 
-    def write_line(self, x1: int, y1: int, x2: int, y2:int, color: Color):
+    def write_line(self, x1: int, y1: int, x2: int, y2: int, color: Color):
         """
         Draws and writes a line that goes from the point (x1, y1) to (x2, y2) in the specified color
         :param x1: Starting x coordinate
@@ -313,7 +313,7 @@ class WeAct213:
         y_min = y1 if y1 < y2 else y2
         x_max = x1 if x1 > x2 else x2
         y_max = y1 if y1 > y2 else y2
-        logging.info(f'The bounding box of the line is ({x_min}, {y_min}, {x_max}, {y_max})')
+        logging.info(f'box of the line is upper_left: ({x_min}, {y_min}), lower_right({x_max}, {y_max})')
         x, y, w, h = self._get_visible_bbox(x_min, y_min, x_max - x_min, y_max - y_min)
         self._set_partial_area(x, y, w, h)
         if color is Color.BLACK or color is Color.WHITE:

@@ -15,7 +15,7 @@ GPIO.setmode(GPIO.BCM)
 
 
 def main():
-    logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s',
+    logging.basicConfig(format='%(asctime)s %(module)s %(levelname)s %(message)s',
                         level=logging.DEBUG)
     logging.info("Initializing display")
     display = raspberrypi_epd.WeAct213(busy=4, reset=17, dc=27, cs=22)
@@ -26,9 +26,9 @@ def main():
     # display.write_pixel(32, 32, raspberrypi_epd.Color.BLACK)
     input('Next WHITE pixel')
     # display.write_pixel(61, 125, raspberrypi_epd.Color.WHITE)
-    logging.info("Draw BLACK line")
+    input("Draw BLACK line")
     display.write_line(22, 125, 100, 125, raspberrypi_epd.Color.BLACK)
-    logging.info("Draw WHITE line")
+    input("Draw WHITE line")
     display.write_line(61, 50, 61, 200, raspberrypi_epd.Color.WHITE)
     input('Press enter to exit')
     display.close()
