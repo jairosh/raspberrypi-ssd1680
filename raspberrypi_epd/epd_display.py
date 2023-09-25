@@ -204,7 +204,8 @@ class WeAct213:
         GPIO.output(self._CS, GPIO.HIGH)
 
     def _write_data(self, data: np.array):
-        self._spi.xfer2(data)
+        for byte in data:
+            self._write_data_byte(byte)
 
     def _update_full(self):
         self._write_command(cmd.DISPLAY_UPDATE_CONTROL_2)
