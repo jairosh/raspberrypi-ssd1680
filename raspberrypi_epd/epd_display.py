@@ -269,15 +269,19 @@ class WeAct213:
             self._red_buffer.draw_pixel(x, y, np.uint8(1))
 
     def draw_line(self, x1: int, y1: int, x2: int, y2: int, color: Color):
+        logging.debug('Drawing a line')
         if x1 == x2 and y1 == y2:
             self.draw_pixel(x1, y1, color)
+            logging.debug(f'Same start/end points. Drawing a pixel at ({x1},{y1})')
             return
         if color is Color.BLACK or color is Color.WHITE:
             color_value = np.uint8(0) if color is Color.BLACK else np.uint8(1)
+            logging.debug(f'Line will be drawn to B&W with value {color_value}')
             self._bw_buffer.draw_line(x1, y1, x2, y2, color_value)
             self._red_buffer.draw_line(x1, y1, x2, y2, np.uint8(0))
         else:
             # Doesn't matter what it's written in the B&W buffer
+            logging.debug('Line will be drawn to RED buffer')
             self._red_buffer.draw_line(x1, y1, x2, y2, np.uint8(1))
 
     def _get_visible_bbox(self, x, y, w, h):
