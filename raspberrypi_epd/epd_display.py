@@ -6,7 +6,7 @@ import spidev
 import RPi.GPIO as GPIO
 from enum import Enum
 from raspberrypi_epd.buffer import DisplayBuffer
-from raspberrypi_epd.localrender import Render
+
 
 class Color(Enum):
     BLACK = 0
@@ -72,6 +72,8 @@ class WeAct213:
         self._red_buffer = DisplayBuffer(self.WIDTH, self.HEIGHT, bg=0, fg=1)
         self.powered = False
         self._using_partial_mode = False
+        self._partial_area = (0, 0, 0, 0)
+        self._initial_refresh = True
 
     def init(self):
         logging.debug('Initializing display')
@@ -82,10 +84,11 @@ class WeAct213:
 
     def _power_on(self):
         # Power on
-        self._write_command(cmd.DISPLAY_UPDATE_CONTROL_2)
-        self._write_data_byte(np.uint8(0xf8))
-        self._write_command(cmd.MASTER_ACTIVATION)
-        self._wait_while_busy()
+        if not self.powered:
+            self._write_command(cmd.DISPLAY_UPDATE_CONTROL_2)
+            self._write_data_byte(np.uint8(0xf8))
+            self._write_command(cmd.MASTER_ACTIVATION)
+            self._wait_while_busy()
         self.powered = True
         logging.debug('Power on complete')
 
@@ -95,8 +98,8 @@ class WeAct213:
             self._write_data_byte(np.uint8(0x83))
             self._write_command(cmd.MASTER_ACTIVATION)
             self._wait_while_busy()
-            self.powered = False
-            self._using_partial_mode = False
+        self.powered = False
+        self._using_partial_mode = False
 
     def init_partial(self):
         logging.debug('Initializing partial update mode')
@@ -157,28 +160,26 @@ class WeAct213:
         self._write_command(cmd.DISPLAY_UPDATE_CONTROL)
         self._write_data_byte(np.uint8(0x00))
         self._write_data_byte(np.uint8(0x80))
+        self._partial_area = (0, 0, self.WIDTH, self.HEIGHT)
 
     def _set_partial_area(self, x, y, width, height):
-        self._write_command(cmd.SET_RAM_X_STARTEND)
+        # Set how the addr counter increases: X increase (until WIDTH) then Y increase
+        self._write_command(cmd.DATA_ENTRY_MODE)
+        self._write_data_byte(np.uint8(0x03))
         # Specify the start/end positions of the window address in the X direction by 8 times address unit
+        self._write_command(cmd.SET_RAM_X_STARTEND)
         start_x_address = np.uint8(x / 8)
-        logging.debug(f"Start X addr: {int(x / 8)} => 0x{start_x_address.tobytes().hex()}")
-        self._write_data_byte(start_x_address)
         end_x_address = np.uint8((x + width - 1) / 8)
-        logging.debug(f'End X Address: {x + width - 1} => 0x{end_x_address.tobytes().hex()}')
+        self._write_data_byte(start_x_address)
         self._write_data_byte(end_x_address)
         # Specify the start / end positions of the window address in the Y direction by an address unit.
         self._write_command(cmd.SET_RAM_Y_STARTEND)
         start_y_mod = np.uint8(y % 256)
-        logging.debug(f"Start Y addr (module): {int(y % 256)} => 0x{start_y_mod.tobytes().hex()}")
-        self._write_data_byte(start_y_mod)
         start_y_mult = np.uint8(y / 256)
-        logging.debug(f"Start Y addr (multiplier): {int(y / 256)} => 0x{start_y_mult.tobytes().hex()}")
+        self._write_data_byte(start_y_mod)
         self._write_data_byte(start_y_mult)
         end_y_mod = np.uint8((y + height - 1) % 256)
         end_y_mult = np.uint8((y + height - 1) / 256)
-        logging.debug(f"End Y addr (module): {int((y + height - 1) % 256)} => 0x{end_y_mod.tobytes().hex()}")
-        logging.debug(f"End Y addr (multiplier): {int((y + height - 1) / 256)} => 0x{end_y_mult.tobytes().hex()}")
         self._write_data_byte(end_y_mod)
         self._write_data_byte(end_y_mult)
         # X RAM Offset
@@ -236,20 +237,15 @@ class WeAct213:
         self._set_partial_area(0, 0, self.WIDTH, self.HEIGHT)
         # After this command, data entries will be written into the BW RAM until another command is written.
         self._write_command(cmd.WRITE_RAM_BW)
-        count = int(self.WIDTH * self.HEIGHT / 8)
         bw_buffer_bytes = self._bw_buffer.serialize()
-        # self._write_data(bw_buffer_bytes)
-        for data in bw_buffer_bytes:
-            self._write_data_byte(data)
+        self._write_data(bw_buffer_bytes)
         self._write_command(cmd.WRITE_RAM_RED)
         red_buffer_bytes = self._red_buffer.serialize()
         logging.debug(red_buffer_bytes)
-        # self._write_data(red_buffer_bytes)
-        for data in red_buffer_bytes:
-            self._write_data_byte(data)
+        self._write_data(red_buffer_bytes)
         self._update_partial()
 
-    def refresh(self, partial_mode):
+    def refresh(self, partial_mode=True):
         if partial_mode:
             self.refresh_area(0, 0, self.WIDTH, self.HEIGHT)
         else:
@@ -320,18 +316,8 @@ class WeAct213:
         if color is Color.BLACK or color is Color.WHITE:
             color_value = np.uint8(0) if color is Color.BLACK else np.uint8(1)
             self._write_command(cmd.WRITE_RAM_BW)
-            # self._bw_buffer.draw_line(x1, y1, x2, y2, color_value)
             self._bw_buffer.draw_line(x1, y1, x2, y2, color_value)
             data = self._bw_buffer.serialize_area(x, y, w, h)
-            prepad = np.zeros(int(60 / 8), dtype=np.uint8)
-            logging.debug(f'prepad has {prepad.size} bytes')
-            postpad = np.zeros(int((self.WIDTH - 61) / 8), dtype=np.uint8)
-            logging.debug(f'postpad has {postpad.size} bytes')
-            # Concatenate arrays
-            data = np.concatenate((prepad, data, postpad))
-            img = Render(self.WIDTH, 151, data)
-            img.render()
-            img.show()
             self._write_data(data)
             self._red_buffer.draw_line(x1, y1, x2, y2, 0)
             self._write_command(cmd.WRITE_RAM_RED)
@@ -393,3 +379,5 @@ class WeAct213:
         else:
             h1 = h
         return x1, y1, w1, h1
+
+    def write_buffers(self):
