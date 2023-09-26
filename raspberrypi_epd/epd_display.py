@@ -330,9 +330,8 @@ class WeAct213:
             # Concatenate arrays
             data = np.concatenate((prepad, data, postpad))
             img = Render(self.WIDTH, 151, data)
-            render = Render(w, h, data)
-            render.render()
-            render.show()
+            img.render()
+            img.show()
             self._write_data(data)
             self._red_buffer.draw_line(x1, y1, x2, y2, 0)
             self._write_command(cmd.WRITE_RAM_RED)
