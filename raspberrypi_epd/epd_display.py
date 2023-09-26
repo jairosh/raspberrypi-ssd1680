@@ -331,6 +331,7 @@ class WeAct213:
             data = np.concatenate((prepad, data, postpad))
             img = Render(self.WIDTH, 151, data)
             render = Render(w, h, data)
+            render.render()
             render.show()
             self._write_data(data)
             self._red_buffer.draw_line(x1, y1, x2, y2, 0)
