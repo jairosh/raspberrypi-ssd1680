@@ -29,7 +29,8 @@ def main():
     input("Draw BLACK line")
     #display.write_line(22, 125, 100, 125, raspberrypi_epd.Color.BLACK)
     input("Draw WHITE line")
-    display.write_line(61, 50, 61, 200, raspberrypi_epd.Color.WHITE)
+    display.draw_line(61, 50, 61, 200, raspberrypi_epd.Color.WHITE)
+    display.refresh()
     input('Press enter to exit')
     display.close()
 

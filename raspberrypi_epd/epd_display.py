@@ -260,89 +260,25 @@ class WeAct213:
         self._set_partial_area(x1, y1, w1, h1)
         self._update_partial()
 
-    def write_pixel(self, x: int, y: int, color: Color):
-        """
-        Writes a single pixel to the display RAM
-        :param x: X coordinate of the pixel
-        :param y: Y coordinate of the pixel
-        :param color: Color of the pixel
-        :return:
-        """
-        # Calculate the byte where to write the bit representing the pixel
-        # RAM size is 176x296 bits (22x37 bytes)
-        self._set_partial_area(x, y, 1, 1)
+    def draw_pixel(self, x: int, y: int, color: Color):
         if color is Color.BLACK or color is Color.WHITE:
             color_value = np.uint8(0) if color is Color.BLACK else np.uint8(1)
-            logging.debug(f'Drawing a black or white pixel in ({x}, {y})')
-            # Write the pixel in the BW RAM area and then clear the same pixel in RED RAM area
-            self._write_command(cmd.WRITE_RAM_BW)
             self._bw_buffer.draw_pixel(x, y, color_value)
-            display_byte = self._bw_buffer.get_pixel_byte(x, y)
-            self._write_data_byte(display_byte)
-            self._red_buffer.clear_pixel(x, y)
-            display_byte = self._red_buffer.get_pixel_byte(x, y)
-            self._write_command(cmd.WRITE_RAM_RED)
-            self._write_data_byte(display_byte)
+            self._red_buffer.draw_pixel(x, y, np.uint8(0))
         else:
-            logging.debug(f'Drawing a red pixel in ({x}, {y})')
-            # Set the bit in the RED RAM area
-            self._red_buffer.set_pixel(x, y)
-            display_byte = self._red_buffer.get_pixel_byte(x, y)
-            self._write_command(cmd.WRITE_RAM_RED)
-            self._write_data_byte(display_byte)
-        self._update_partial()
+            self._red_buffer.draw_pixel(x, y, np.uint8(1))
 
-    def write_line(self, x1: int, y1: int, x2: int, y2: int, color: Color):
-        """
-        Draws and writes a line that goes from the point (x1, y1) to (x2, y2) in the specified color
-        :param x1: Starting x coordinate
-        :param y1: Starting y coordinate
-        :param x2: Ending x coordinate
-        :param y2: Ending y coordinate
-        :param color: Color of the line
-        :return: none
-        """
+    def draw_line(self, x1: int, y1: int, x2: int, y2: int, color: Color):
         if x1 == x2 and y1 == y2:
-            self.write_pixel(x1, y1, color)
+            self.draw_pixel(x1, y1, color)
             return
-        logging.info(f'Drawing and writing a line from ({x1}, {y1}) to ({x2}, {y2})')
-        x_min = x1 if x1 < x2 else x2
-        y_min = y1 if y1 < y2 else y2
-        x_max = x1 if x1 > x2 else x2
-        y_max = y1 if y1 > y2 else y2
-        logging.info(f'box of the line is upper_left: ({x_min}, {y_min}), lower_right({x_max}, {y_max})')
-        x, y, w, h = self._get_visible_bbox(x_min, y_min, x_max - x_min, y_max - y_min)
-        self._set_partial_area(x, y, w, h)
         if color is Color.BLACK or color is Color.WHITE:
             color_value = np.uint8(0) if color is Color.BLACK else np.uint8(1)
-            self._write_command(cmd.WRITE_RAM_BW)
             self._bw_buffer.draw_line(x1, y1, x2, y2, color_value)
-            data = self._bw_buffer.serialize_area(x, y, w, h)
-            self._write_data(data)
-            self._red_buffer.draw_line(x1, y1, x2, y2, 0)
-            self._write_command(cmd.WRITE_RAM_RED)
-            data = self._red_buffer.serialize_area(x, y, w, h)
-            self._write_data(data)
+            self._red_buffer.draw_line(x1, y1, x2, y2, np.uint8(0))
         else:
-            logging.debug(f'Drawing a red line in ({x1}, {y1})--({x2}, {y2})')
-            # Set the bit in the RED RAM area
+            # Doesn't matter what it's written in the B&W buffer
             self._red_buffer.draw_line(x1, y1, x2, y2, np.uint8(1))
-            data = self._red_buffer.serialize_area(x, y, w, h)
-            self._write_command(cmd.WRITE_RAM_RED)
-            self._write_data(data)
-        self._update_partial()
-
-    def write_image(self, command: np.uint8, bitmap: np.ndarray, x: int, y: int, w: int, h: int, invert: bool):
-        # A pixel is represented by a bit, so all coordinates and dimmensions need to be converted to bytes
-        d = np.array(x, y, w, h)
-        dimmensions = np.array(np.ceil(d / 8), dtype=np.uint8)
-        width_bytes = np.uint8(np.ceil(w / 8))
-        x -= x % 8
-        w = width_bytes * 8
-        # Calculate the actual coordinates of the bounding box, including if the image clips out of the display
-        x_box, y_box, w_box, h_box = self._get_visible_bbox(x, y, w, h)
-        dx = x_box - x
-        dy = y_box - y
 
     def _get_visible_bbox(self, x, y, w, h):
         x1, y1, w1, h1 = [0] * 4
