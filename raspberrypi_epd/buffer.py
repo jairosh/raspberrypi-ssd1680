@@ -108,6 +108,9 @@ class DisplayBuffer:
         else:
             logging.warning(f'Incorrect color value {value}')
 
+    def fill_area(self, x: int, y: int, width: int, height: int, value: np.uint8):
+        pass
+
     def get_pixel_value(self, x, y):
         """Reads the value of the given point (x, y)
 
@@ -265,7 +268,7 @@ class DisplayBuffer:
                                   (yk + xc, -xk + yc),
                                   (-yk + xc, -xk + yc)], value)
 
-    def draw_bitmap(self, bitmap: np.array, x: int, y: int, w: int, h: int):
+    def draw_bitmap(self, bitmap: np.array, x: int, y: int, w: int, h: int, value: np.uint8):
         """Draws a bitmap on the buffer. The bitmap starts at the upper left corner (x, y)
         and the lower right corner is (x+w, y+h)
 
@@ -283,7 +286,7 @@ class DisplayBuffer:
             bit = 0
             for mask in bitmasks:
                 if mask & byte:
-                    self.draw_pixel(x_p + x, y_p + y)
+                    self.draw_pixel(x_p + x, y_p + y, value)
                 bit = bit + 1
                 x_p = x_p + 1
             if x_p == w:
@@ -391,6 +394,27 @@ class DisplayBuffer:
         for b in bitarray:
             number = (2 * number) + b
         return np.uint8(number)
+
+    def effective_area(self, x: int, y: int, width: int, height: int):
+        """
+        Calculate the intersection of the supplied rectangular area and the available screen space
+        :param x: Starting X coordinate (left side of the area)
+        :param y: Starting Y coordinate (top side of the area)
+        :param width: Width of the area
+        :param height: Height of the area
+        :return: 4-tuple with (x, y, width, height) inside the boundaries of the screen
+        """
+        if width < 0 or height < 0:
+            return 0, 0, 0, 0
+        if (x < 0 and (x + width) < 0) or (x > self.WIDTH):
+            return 0, 0, 0, 0
+        if (y < 0 and (y + height) < 0) or (y > self.HEIGHT):
+            return 0, 0, 0, 0
+        x1 = 0 if x < 0 else x
+        y1 = 0 if y < 0 else y
+        x2 = self.WIDTH if x + width > self.WIDTH else x + width
+        y2 = self.HEIGHT if y + height > self.HEIGHT else y + height
+        return x1, y1, x2 - x1, y2 - y1
 
     def dump_raw_buffer(self):
         """Prints the buffer in a matrix of WIDTH*HEIGHT
