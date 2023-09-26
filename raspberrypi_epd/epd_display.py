@@ -323,6 +323,13 @@ class WeAct213:
             # self._bw_buffer.draw_line(x1, y1, x2, y2, color_value)
             self._bw_buffer.draw_line(x1, y1, x2, y2, color_value)
             data = self._bw_buffer.serialize_area(x, y, w, h)
+            prepad = np.zeros(int(60 / 8), dtype=np.uint8)
+            logging.debug(f'prepad has {prepad.size} bytes')
+            postpad = np.zeros(int((self.WIDTH - 61) / 8), dtype=np.uint8)
+            logging.debug(f'postpad has {postpad.size} bytes')
+            # Concatenate arrays
+            data = np.concatenate((prepad, data, postpad))
+            img = Render(self.WIDTH, 151, data)
             render = Render(w, h, data)
             render.show()
             self._write_data(data)
