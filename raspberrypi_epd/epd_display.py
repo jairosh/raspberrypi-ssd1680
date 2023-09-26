@@ -379,5 +379,3 @@ class WeAct213:
         else:
             h1 = h
         return x1, y1, w1, h1
-
-    def write_buffers(self):
