@@ -6,7 +6,7 @@ import spidev
 import RPi.GPIO as GPIO
 from enum import Enum
 from raspberrypi_epd.buffer import DisplayBuffer
-
+from raspberrypi_epd.localrender import Render
 
 class Color(Enum):
     BLACK = 0
@@ -320,8 +320,10 @@ class WeAct213:
         if color is Color.BLACK or color is Color.WHITE:
             color_value = np.uint8(0) if color is Color.BLACK else np.uint8(1)
             self._write_command(cmd.WRITE_RAM_BW)
+            # self._bw_buffer.draw_line(x1, y1, x2, y2, color_value)
             self._bw_buffer.draw_line(x1, y1, x2, y2, color_value)
             data = self._bw_buffer.serialize_area(x, y, w, h)
+            render = Render(w, h, data)
             self._write_data(data)
             self._red_buffer.draw_line(x1, y1, x2, y2, 0)
             self._write_command(cmd.WRITE_RAM_RED)
