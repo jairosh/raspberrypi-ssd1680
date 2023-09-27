@@ -284,6 +284,14 @@ class WeAct213:
             logging.debug('Line will be drawn to RED buffer')
             self._red_buffer.draw_line(x1, y1, x2, y2, np.uint8(1))
 
+    def draw_bitmap(self, bitmap: np.array, x: int, y: int, width: int, height: int, color: Color):
+        if color is Color.BLACK or color is Color.WHITE:
+            color_value = np.uint8(0) if color is Color.BLACK else np.uint8(1)
+            self._bw_buffer.draw_bitmap(bitmap, x, y, width, height, color_value)
+            self._red_buffer.draw_bitmap(bitmap, x, y, width, height, np.uint8(0))
+        else:
+            self._red_buffer.draw_bitmap(bitmap, x, y, width, height, np.uint8(1))
+
     def _get_visible_bbox(self, x, y, w, h):
         x1, y1, w1, h1 = [0] * 4
         if x < 0:
