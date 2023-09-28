@@ -6,6 +6,7 @@ import spidev
 import RPi.GPIO as GPIO
 from enum import Enum
 from raspberrypi_epd.buffer import DisplayBuffer
+from bdfparser import Font
 
 
 class Color(Enum):
@@ -292,6 +293,11 @@ class WeAct213:
         else:
             self._red_buffer.draw_bitmap(bitmap, x, y, width, height, np.uint8(1))
 
+    def draw_text(self, text: str, x: int, y: int, font: Font, color: Color):
+        text_bitmap = font.draw(text)
+        array, width, height = self._as_bytearray(text_bitmap.todata(4))
+        self.draw_bitmap(array, x, y, width, height, color)
+
     def _get_visible_bbox(self, x, y, w, h):
         x1, y1, w1, h1 = [0] * 4
         if x < 0:
@@ -327,3 +333,31 @@ class WeAct213:
         else:
             h1 = h
         return x1, y1, w1, h1
+
+    @staticmethod
+    def _bitmap_to_bytearray(bitmap: list):
+        """Converts a bitmap from a font into a bitmap
+
+        Args:
+            bitmap (list): A list of hex strings, each one represents a line
+        Returns:
+            np.array(np.uint8): The byte array
+            int: The width in bits (pixels) of the bitmap as it might be padded to complete a byte
+            int: The height in bits (pixels) of the bitmap
+        """
+        byte_list = []
+        bytes_per_line = 0
+        for line in bitmap:
+            nibbles = len(line)
+            bytes_per_line = 0
+            for byte in range(int(nibbles / 2)):
+                first_nibble = line[byte*2]
+                if byte == nibbles:
+                    second_nibble = 0
+                else:
+                    second_nibble = line[byte*2 + 1]
+                hex_byte = first_nibble + second_nibble
+                byte_value = np.uint8(int(hex_byte, base=16))
+                byte_list.append(byte_value)
+                bytes_per_line = bytes_per_line + 1
+        return np.array(byte_list), bytes_per_line * 8, len(bitmap)

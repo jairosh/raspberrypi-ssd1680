@@ -2,6 +2,7 @@ import raspberrypi_epd
 import logging
 import RPi.GPIO as GPIO
 import numpy as np
+from bdfparser import Font
 
 # Ejemplo de conexion
 # BUSY          GPIO4
@@ -48,20 +49,24 @@ pattern_bitmap = np.array([0x26, 0xc5, 0x4a, 0x0a, 0x8a, 0xb2, 0xb9, 0x5c, 0x8b,
                        0x80, 0x55, 0x4a, 0x15, 0x30, 0x56, 0x98, 0xe0, 0xfc, 0x14, 0x54, 0x54, 0x61, 0x54, 0x4e, 0x31],
                        dtype=np.uint8)
 
+
 def main():
     logging.basicConfig(format='%(asctime)s %(module)s %(levelname)s %(message)s',
                         level=logging.DEBUG)
     logging.info("Initializing display")
     display = raspberrypi_epd.WeAct213(busy=4, reset=17, dc=27, cs=22)
     display.init()
-    display.fill(raspberrypi_epd.Color.RED)
+    display.fill(raspberrypi_epd.Color.WHITE)
     display.refresh(False)
+    font = Font('fonts/helvB14.bdf')
+    display.draw_text('Prueba', 0, 0, font, raspberrypi_epd.Color.BLACK)
+    display.refresh()
     input('Display was cleared, press ENTER to draw black pixel')
     # display.write_pixel(32, 32, raspberrypi_epd.Color.BLACK)
     input('Next WHITE pixel')
     # display.write_pixel(61, 125, raspberrypi_epd.Color.WHITE)
     input("Draw BLACK line")
-    #display.write_line(22, 125, 100, 125, raspberrypi_epd.Color.BLACK)
+    # display.write_line(22, 125, 100, 125, raspberrypi_epd.Color.BLACK)
     input("Draw WHITE line")
     display.draw_line(61, 50, 61, 200, raspberrypi_epd.Color.WHITE)
     display.draw_bitmap(pattern_bitmap, 0, 0, 64, 64, raspberrypi_epd.Color.BLACK)
