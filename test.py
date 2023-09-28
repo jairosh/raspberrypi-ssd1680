@@ -59,7 +59,7 @@ def main():
     display.fill(raspberrypi_epd.Color.WHITE)
     display.refresh(False)
     font = Font('fonts/helvB14.bdf')
-    display.draw_text('Prueba', 0, 0, font, raspberrypi_epd.Color.BLACK)
+    display.draw_text('Prueba', 0, 20, font, raspberrypi_epd.Color.BLACK)
     display.refresh()
     input('Display was cleared, press ENTER to draw black pixel')
     # display.write_pixel(32, 32, raspberrypi_epd.Color.BLACK)

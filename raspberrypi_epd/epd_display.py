@@ -295,7 +295,7 @@ class WeAct213:
 
     def draw_text(self, text: str, x: int, y: int, font: Font, color: Color):
         text_bitmap = font.draw(text)
-        array, width, height = self._as_bytearray(text_bitmap.todata(4))
+        array, width, height = self._bitmap_to_bytearray(text_bitmap.todata(4))
         self.draw_bitmap(array, x, y, width, height, color)
 
     def _get_visible_bbox(self, x, y, w, h):
