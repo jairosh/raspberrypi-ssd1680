@@ -1,5 +1,6 @@
 import numpy as np
 import logging
+from bdfparser import Font
 
 
 class DisplayBuffer:
@@ -25,6 +26,27 @@ class DisplayBuffer:
         self._out_of_bounds_error = False
         self._foreground = fg
         self._background = bg
+        self._rotation = 0
+        self.x_length = self.WIDTH
+        self.y_length = self.HEIGHT
+
+    def rotate(self, degrees: int):
+        """Virtually rotates the display to draw in different modes. The
+        rotation is specified in degrees with the values: 0, 90, 180, 270
+
+        Args:
+            degrees (int): The rotation angle
+        """
+        if degrees not in [0, 90, 180, 270]:
+            logging.warning('Invalid rotation.')
+            return
+        if degrees == 90 or degrees == 270:
+            self.x_length = self.HEIGHT
+            self.y_length = self.WIDTH
+        elif degrees == 0 or degrees == 180:
+            self.x_length = self.WIDTH
+            self.y_length = self.HEIGHT
+        self._rotation = degrees
 
     def draw_pixel(self, x: int, y: int, value: np.uint8):
         """
@@ -36,7 +58,8 @@ class DisplayBuffer:
         """
         if not self._valid_coords(x, y):
             return
-        start, end, bit = self._get_slice(x, y)
+        xr, yr = self.rotate_coords(x, y)
+        start, end, bit = self._get_slice(xr, yr)
         self._buffer[start + bit] = value
 
     def draw_pixels(self, pixels: list, value: np.uint8):
@@ -241,9 +264,9 @@ class DisplayBuffer:
         xk, yk = (r, 0)
         pk = 1 - r
         self.draw_pixels([(xk + xc, yk + yc),
-                                (-xk + xc, yk + yc),
-                                (xk + xc, -yk + yc),
-                                (-xk + xc, -yk + yc)], value)
+                          (-xk + xc, yk + yc),
+                          (xk + xc, -yk + yc),
+                          (-xk + xc, -yk + yc)], value)
         self.draw_pixels([(xc, yc + r),
                           (xc, yc - r)], value)
         while xk > yk:
@@ -278,6 +301,7 @@ class DisplayBuffer:
             y (int): Y coordinate where to start drawing the bitmap
             w (int): Width of the bitmap
             h (int): Height of the bitmap
+            value (np.uint8): Value to set in the buffer
         """
         x_p = 0
         y_p = 0
@@ -292,6 +316,11 @@ class DisplayBuffer:
             if x_p == w:
                 y_p = y_p + 1
                 x_p = 0
+
+    def draw_text(self, text: str, font: Font, x: int, y: int, value: np.uint8):
+        text_bitmap = font.draw(text)
+        array, width, height = self._bitmap_to_bytearray(text_bitmap.todata(4))
+        self.draw_bitmap(array, x, y, width, height, value)
 
     def _get_slice(self, x, y):
         """Locates the slice of the buffer that contains a whole byte given x and y coordinates
@@ -332,14 +361,31 @@ class DisplayBuffer:
         Returns:
             Boolean: True if they are valid (visible) coordinates, False otherwise
         """
-        within_x = 0 <= x <= self.WIDTH
-        within_y = 0 <= y <= self.HEIGHT
+        within_x = 0 <= x <= self.x_length
+        within_y = 0 <= y <= self.y_length
         if within_x and within_y:
             return True
         else:
             if self._out_of_bounds_error:
                 raise ValueError('Coordinates out of bounds')
         return False
+
+    def rotate_coords(self, x, y):
+        xn, yn = (0, 0)
+        if self._rotation == 90:
+            xn = self.WIDTH - y
+            yn = x
+        elif self._rotation == 180:
+            xn = self.WIDTH - x
+            yn = self.HEIGHT - y
+        elif self._rotation == 270:
+            xn = y
+            yn = self.HEIGHT - x
+        else:
+            xn = x
+            yn = y
+
+        return xn, yn
 
     def serialize(self):
         """Converts the internal buffer to a list of bytes
@@ -358,7 +404,7 @@ class DisplayBuffer:
         return np.array(bytelist, dtype=np.uint8)
 
     def serialize_area(self, x, y, width, height):
-        if not self._valid_coords(x, y) or not self._valid_coords(x+width, y+height):
+        if not self._valid_coords(x, y) or not self._valid_coords(x + width, y + height):
             logging.warning(f'The specified coordinates are invalid')
             return
         slice_start, _, _ = self._get_slice(x, y)
@@ -438,3 +484,31 @@ class DisplayBuffer:
             ascii_line = ''.join(ascii_list)
             lines.append(ascii_line)
         return '\n'.join(lines)
+
+    @staticmethod
+    def _bitmap_to_bytearray(bitmap: list):
+        """Converts a bitmap from a font into a bitmap
+
+        Args:
+            bitmap (list): A list of hex strings, each one represents a line
+        Returns:
+            np.array(np.uint8): The byte array
+            int: The width in bits (pixels) of the bitmap as it might be padded to complete a byte
+            int: The height in bits (pixels) of the bitmap
+        """
+        byte_list = []
+        bytes_per_line = 0
+        for line in bitmap:
+            nibbles = len(line)
+            bytes_per_line = 0
+            for byte in range(int(nibbles / 2)):
+                first_nibble = line[byte * 2]
+                if byte == nibbles:
+                    second_nibble = 0
+                else:
+                    second_nibble = line[byte * 2 + 1]
+                hex_byte = first_nibble + second_nibble
+                byte_value = np.uint8(int(hex_byte, base=16))
+                byte_list.append(byte_value)
+                bytes_per_line = bytes_per_line + 1
+        return np.array(byte_list), bytes_per_line * 8, len(bitmap)

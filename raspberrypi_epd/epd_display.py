@@ -75,6 +75,8 @@ class WeAct213:
         self._using_partial_mode = False
         self._partial_area = (0, 0, 0, 0)
         self._initial_refresh = True
+        self._font = None
+        self._rotation = 0
 
     def init(self):
         logging.debug('Initializing display')
@@ -234,6 +236,10 @@ class WeAct213:
         logging.debug(f'Sampling RED RAM (0,0): 0x{self._red_buffer.get_pixel_byte(0, 0).tobytes().hex()}')
         self.write_buffer()
 
+    def set_rotation(self, degrees: int):
+        self._bw_buffer.rotate(degrees)
+        self._red_buffer.rotate(degrees)
+
     def write_buffer(self):
         self._set_partial_area(0, 0, self.WIDTH, self.HEIGHT)
         # After this command, data entries will be written into the BW RAM until another command is written.
@@ -260,6 +266,9 @@ class WeAct213:
             self.init()
         self._set_partial_area(x1, y1, w1, h1)
         self._update_partial()
+
+    def set_font(self, path: str):
+        self._font = Font(path)
 
     def draw_pixel(self, x: int, y: int, color: Color):
         if color is Color.BLACK or color is Color.WHITE:
@@ -293,10 +302,13 @@ class WeAct213:
         else:
             self._red_buffer.draw_bitmap(bitmap, x, y, width, height, np.uint8(1))
 
-    def draw_text(self, text: str, x: int, y: int, font: Font, color: Color):
-        text_bitmap = font.draw(text)
-        array, width, height = self._bitmap_to_bytearray(text_bitmap.todata(4))
-        self.draw_bitmap(array, x, y, width, height, color)
+    def draw_text(self, text: str, x: int, y: int, color: Color):
+        if color is Color.BLACK or color is Color.WHITE:
+            color_value = np.uint8(0) if color is Color.BLACK else np.uint8(1)
+            self._bw_buffer.draw_text(text, self._font, x, y, color_value)
+            self._red_buffer.draw_text(text, self._font, x, y, np.uint8(0))
+        else:
+            self._red_buffer.draw_text(text, self._font, x, y, np.uint8(1))
 
     def _get_visible_bbox(self, x, y, w, h):
         x1, y1, w1, h1 = [0] * 4
@@ -333,31 +345,3 @@ class WeAct213:
         else:
             h1 = h
         return x1, y1, w1, h1
-
-    @staticmethod
-    def _bitmap_to_bytearray(bitmap: list):
-        """Converts a bitmap from a font into a bitmap
-
-        Args:
-            bitmap (list): A list of hex strings, each one represents a line
-        Returns:
-            np.array(np.uint8): The byte array
-            int: The width in bits (pixels) of the bitmap as it might be padded to complete a byte
-            int: The height in bits (pixels) of the bitmap
-        """
-        byte_list = []
-        bytes_per_line = 0
-        for line in bitmap:
-            nibbles = len(line)
-            bytes_per_line = 0
-            for byte in range(int(nibbles / 2)):
-                first_nibble = line[byte*2]
-                if byte == nibbles:
-                    second_nibble = 0
-                else:
-                    second_nibble = line[byte*2 + 1]
-                hex_byte = first_nibble + second_nibble
-                byte_value = np.uint8(int(hex_byte, base=16))
-                byte_list.append(byte_value)
-                bytes_per_line = bytes_per_line + 1
-        return np.array(byte_list), bytes_per_line * 8, len(bitmap)
