@@ -88,12 +88,12 @@ def main():
     display.draw_text('Texto a 90', 35, 0, raspberrypi_epd.Color.RED)
     # Dibuja una linea rotada a 180º
     display.set_rotation(180)
-    display.draw_line(0, 0, 122, 0, raspberrypi_epd.Color.BLACK)
-    display.draw_line(1, 0, 122, 1, raspberrypi_epd.Color.BLACK)
-    display.draw_line(2, 0, 122, 2, raspberrypi_epd.Color.BLACK)
-    display.draw_line(3, 0, 122, 3, raspberrypi_epd.Color.RED)
-    display.draw_line(4, 0, 122, 4, raspberrypi_epd.Color.RED)
-    display.draw_line(5, 0, 122, 5, raspberrypi_epd.Color.RED)
+    display.draw_line(0, 0, 121, 0, raspberrypi_epd.Color.BLACK)
+    display.draw_line(1, 0, 121, 1, raspberrypi_epd.Color.BLACK)
+    display.draw_line(2, 0, 121, 2, raspberrypi_epd.Color.BLACK)
+    display.draw_line(3, 0, 121, 3, raspberrypi_epd.Color.RED)
+    display.draw_line(4, 0, 121, 4, raspberrypi_epd.Color.RED)
+    display.draw_line(5, 0, 121, 5, raspberrypi_epd.Color.RED)
     # Rota a 270º
     display.set_rotation(270)
     # Para centrar se calcula (Display.WIDTH/2-(bitmap.width/2)) y (Display.HEIGHT/2-(bitmap.height/2))
