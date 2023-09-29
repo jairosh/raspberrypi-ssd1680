@@ -322,6 +322,12 @@ class DisplayBuffer:
         array, width, height = self._bitmap_to_bytearray(text_bitmap.todata(4))
         self.draw_bitmap(array, x, y, width, height, value)
 
+    def draw_rectangle(self, x: int, y: int, w: int, h: int, value: np.uint8):
+        self.draw_line(x, y, x + w, y, value)
+        self.draw_line(x + w, y, x + w, y + h, value)
+        self.draw_line(x + w, y + h, x, y + h, value)
+        self.draw_line(x, y + h, x, y, value)
+
     def _get_slice(self, x, y):
         """Locates the slice of the buffer that contains a whole byte given x and y coordinates
 

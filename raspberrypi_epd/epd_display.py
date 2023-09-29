@@ -310,6 +310,22 @@ class WeAct213:
         else:
             self._red_buffer.draw_text(text, self._font, x, y, np.uint8(1))
 
+    def draw_circle(self, x: int, y: int, r: int, color: Color):
+        if color is Color.BLACK or color is Color.WHITE:
+            color_value = np.uint8(0) if color is Color.BLACK else np.uint8(1)
+            self._bw_buffer.draw_circle(x, y, r, color_value)
+            self._red_buffer.draw_circle(x, y, r, np.uint(0))
+        else:
+            self._red_buffer.draw_circle(x, y, r, np.uint8(1))
+
+    def draw_rectangle(self, x: int, y: int, width: int, height: int, color: Color):
+        if color is Color.BLACK or color is Color.WHITE:
+            color_value = np.uint8(0) if color is Color.BLACK else np.uint8(1)
+            self._bw_buffer.draw_rectangle(x, y, width, height, color_value)
+            self._red_buffer.draw_rectangle(x, y, width, height, 0)
+        else:
+            self._red_buffer.draw_rectangle(x, y, width, height, np.uint8(1))
+
     def _get_visible_bbox(self, x, y, w, h):
         x1, y1, w1, h1 = [0] * 4
         if x < 0:
