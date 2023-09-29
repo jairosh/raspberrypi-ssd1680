@@ -59,6 +59,7 @@ class DisplayBuffer:
         if not self._valid_coords(x, y):
             return
         xr, yr = self.rotate_coords(x, y)
+        logging.debug(f'{self._rotation} Rotation of coordinates ({x}, {y}) => ({xr}, {yr})')
         start, end, bit = self._get_slice(xr, yr)
         self._buffer[start + bit] = value
 
