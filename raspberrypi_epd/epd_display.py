@@ -25,7 +25,7 @@ class WeAct213:
     Provides the low level control/writing operations on the display
     """
     HEIGHT = 250
-    WIDTH = 120
+    WIDTH = 128
     WIDTH_VISIBLE = 122
     CONTROLLER = 'SSD1680'
     # Timings

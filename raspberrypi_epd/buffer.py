@@ -380,14 +380,14 @@ class DisplayBuffer:
     def rotate_coords(self, x, y):
         xn, yn = (0, 0)
         if self._rotation == 90:
-            xn = self.WIDTH - y
+            xn = (self.WIDTH - 1) - y
             yn = x
         elif self._rotation == 180:
-            xn = self.WIDTH - x
-            yn = self.HEIGHT - y
+            xn = (self.WIDTH - 1) - x
+            yn = (self.HEIGHT - 1) - y
         elif self._rotation == 270:
             xn = y
-            yn = self.HEIGHT - x
+            yn = (self.HEIGHT - 1) - x
         else:
             xn = x
             yn = y
