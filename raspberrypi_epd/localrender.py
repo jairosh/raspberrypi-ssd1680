@@ -12,19 +12,23 @@ class Render:
             height (int): Height of the image in pixels
             data (np.array(np.uint8)): Array of data that describes the pixels in the screen (monochrome)
         """
-        logging.debug(f'Creating a render object for a screen of {width}x{height} pixels.')
-        logging.debug(f'Bytes received: {data.size} == {int(width * height / 8)}')
+        logging.debug(
+            f"Creating a render object for a screen of {width}x{height} pixels."
+        )
+        logging.debug(f"Bytes received: {data.size} == {int(width * height / 8)}")
         self.WIDTH = width
         self.HEIGHT = height
         self._data = data
         if data.ndim != 1:
-            raise ValueError(f'Incorrect array form: {data.shape}')
+            raise ValueError(f"Incorrect array form: {data.shape}")
         if data.size != int(width * height / 8):
-            raise ValueError(f'Incorrect number of data bytes. Expected {int(width * height / 8)} but got {data.size}')
+            raise ValueError(
+                f"Incorrect number of data bytes. Expected {int(width * height / 8)} but got {data.size}"
+            )
         self._image = None
 
     def render(self):
-        image = Image.new('1', (self.WIDTH, self.HEIGHT))
+        image = Image.new("1", (self.WIDTH, self.HEIGHT))
         pixels = image.load()
         # canvas = ImageDraw.Draw(image)
         masks = [0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01]

@@ -15,6 +15,7 @@ flake8 = "^6.1.0"
 pytest = "^7.4.2"
 pillow = "^10.0.1"
 bdfparser = "^2.2.0"
+black = "^23.9.1"
 
 
 

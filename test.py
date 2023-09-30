@@ -15,7 +15,7 @@ from bdfparser import Font
 # VCC
 GPIO.setmode(GPIO.BCM)
 
-#QR Code, Imagen se transformo usando https://javl.github.io/image2cpp/
+# QR Code, Imagen se transformo usando https://javl.github.io/image2cpp/
 # Se sube la imagen se dejan las opciones de default solamente cambiar el tamaño al deseado y la opción
 # 'Scaling' a Scale to fit, revisar en el preview y generar el codigo en "Plain bytes"
 # 80x80px
