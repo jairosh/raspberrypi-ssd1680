@@ -99,7 +99,7 @@ def main():
     # Para centrar se calcula (Display.WIDTH/2-(bitmap.width/2)) y (Display.HEIGHT/2-(bitmap.height/2))
     #                         (125 - 40), (66 - 40) => (85, 26)
     display.draw_bitmap(qr_code, 85, 26, 80, 80, raspberrypi_epd.Color.BLACK)
-    display.draw_rectangle(8, 8, 117, 53, raspberrypi_epd.Color.RED)
+    display.draw_rectangle(8, 8, 234, 106, raspberrypi_epd.Color.RED)
     display.write_buffer()
     input('Press enter to exit')
     display.close()
