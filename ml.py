@@ -141,6 +141,7 @@ def draw():
     display.set_font('fonts/spleen-8x16.bdf')
     display.draw_text("Código de",  20, 115, raspberrypi_epd.Color.RED)
     display.draw_text("ejemplo",  30, 131, raspberrypi_epd.Color.RED)
+    display.write_buffer()
 
 
 def main():
