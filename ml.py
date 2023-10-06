@@ -142,6 +142,7 @@ def draw():
     display.draw_text("Código de",  20, 115, raspberrypi_epd.Color.RED)
     display.draw_text("ejemplo",  30, 131, raspberrypi_epd.Color.RED)
     display.write_buffer()
+    display.close()
 
 
 def main():
