@@ -131,7 +131,6 @@ def draw():
     display.init()
     display.fill(raspberrypi_epd.Color.WHITE)
     display.refresh(False)
-
     display.set_rotation(90)
     display.draw_bitmap(rpi_gh, 27, 35, 72, 72, raspberrypi_epd.Color.BLACK)
     display.draw_bitmap(weact_gh, 151, 35, 72, 72, raspberrypi_epd.Color.BLACK)
@@ -145,9 +144,10 @@ def draw():
 
 
 def main():
-    logging.basicConfig(format='%(asctime)s %(module)s %(levelname)s %(message)s', level=logging.INFO)
+    logging.basicConfig(format='%(asctime)s %(module)s %(levelname)s %(message)s', level=logging.DEBUG)
     logging.info("Initializing display")
-    test_drawing()
+    # test_drawing()
+    draw()
 
 
 if __name__ == '__main__':
